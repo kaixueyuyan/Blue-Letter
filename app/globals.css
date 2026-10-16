@@ -1,26 +1,118 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f1ea;
+  --foreground: #0e1320;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ivory: #f4f1ea;
+  --color-paper: #fbfaf6;
+  --color-paper-deep: #ece7dc;
+  --color-parchment: #fbfaf6;
+  --color-ink: #0e1320;
+  --color-ink-soft: #5b6272;
+  --color-navy: #0b1c3d;
+  --color-air-blue: #1a3a73;
+  --color-air-red: #8a3a32;
+  --color-wax: #6e4a32;
+  --color-gold: #b89a5c;
+  --color-moss: #3f5644;
+  --color-tape: #e8e2d4;
+  --font-sans: var(--font-outfit);
+  --font-display: var(--font-cormorant);
+  --font-serif: var(--font-cormorant);
+  --font-script: var(--font-cormorant);
+  --font-stamp: var(--font-outfit);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-outfit), system-ui, sans-serif;
+}
+
+::selection {
+  background: #d7c9a4;
+  color: #0e1320;
+}
+
+.site-canvas {
+  background-color: #f4f1ea;
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -20%, #fffdf8 0%, transparent 58%),
+    linear-gradient(180deg, transparent 0%, rgba(184, 154, 92, 0.05) 100%);
+}
+
+.hairline {
+  box-shadow: inset 0 0 0 1px rgba(14, 19, 32, 0.08);
+}
+
+.surface-lift {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 24px 60px -36px rgba(11, 28, 61, 0.28),
+    0 1px 2px rgba(11, 28, 61, 0.06);
+}
+
+.gold-rule {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(184, 154, 92, 0.85),
+    transparent
+  );
+}
+
+@keyframes ink-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes slow-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-ink {
+  animation: ink-rise 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.route-dash {
+  animation: dash-flow 3.4s linear infinite;
+}
+
+.compass-spin {
+  animation: slow-spin 64s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-ink,
+  .route-dash,
+  .compass-spin {
+    animation: none;
+  }
 }

@@ -2,23 +2,33 @@
 
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const nav = [
-  { id: "overview", href: "#top", label: "Overview" },
-  { id: "brief", href: "#brief", label: "Brief" },
-  { id: "missions", href: "#missions", label: "Missions" },
-  { id: "join", href: "#join", label: "Join" },
+  { id: "overview", href: "/#top", label: "Overview" },
+  { id: "brief", href: "/#brief", label: "Brief" },
+  { id: "missions", href: "/missions", label: "Missions" },
+  { id: "join", href: "/#join", label: "Join" },
 ];
 
 export function SiteHeader() {
-  const [active, setActive] = useState("overview");
+  const pathname = usePathname();
+  const [active, setActive] = useState(
+    pathname === "/missions" ? "missions" : "overview",
+  );
 
   useEffect(() => {
+    if (pathname === "/missions") {
+      setActive("missions");
+      return;
+    }
+
     const sections = nav
+      .filter((item) => item.href.startsWith("/#"))
       .map((item) => ({
         id: item.id,
-        el: document.getElementById(item.href.slice(1)),
+        el: document.getElementById(item.href.slice(2)),
       }))
       .filter((section): section is { id: string; el: HTMLElement } =>
         Boolean(section.el),
@@ -32,7 +42,7 @@ export function SiteHeader() {
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
         if (!visible?.target.id) return;
-        const match = nav.find((item) => item.href === `#${visible.target.id}`);
+        const match = nav.find((item) => item.href === `/#${visible.target.id}`);
         if (match) setActive(match.id);
       },
       { rootMargin: "-28% 0px -58% 0px", threshold: [0.1, 0.35, 0.6] },
@@ -40,7 +50,7 @@ export function SiteHeader() {
 
     sections.forEach((section) => observer.observe(section.el));
     return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-30">
@@ -65,12 +75,12 @@ export function SiteHeader() {
             />
           </nav>
 
-          <a
-            href="#join"
+          <Link
+            href="/#join"
             className="hidden rounded-full border border-ink/10 bg-navy px-4 py-2 text-[11px] tracking-[0.18em] text-ivory uppercase transition hover:bg-air-blue sm:inline-flex"
           >
-            Request berth
-          </a>
+            Join the Expedition
+          </Link>
         </div>
         <div className="border-t border-ink/6 px-5 py-2 md:hidden">
           <nav aria-label="Primary">

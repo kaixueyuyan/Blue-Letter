@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 
 export type SegmentedTab = {
@@ -29,9 +30,11 @@ export function SegmentedTabs({
   const [indicator, setIndicator] = useState({ left: 4, width: 0, height: 0, top: 4 });
 
   useLayoutEffect(() => {
+    const list = listRef.current;
+
     const measure = () => {
       const active = itemRefs.current.get(value);
-      if (!active) return;
+      if (!list || !active || active.offsetWidth === 0) return;
       setIndicator({
         left: active.offsetLeft,
         width: active.offsetWidth,
@@ -41,8 +44,22 @@ export function SegmentedTabs({
     };
 
     measure();
+    const frame = requestAnimationFrame(measure);
+    void document.fonts?.ready.then(measure);
+
+    const observer = new ResizeObserver(measure);
+    if (list) observer.observe(list);
+    itemRefs.current.forEach((node) => observer.observe(node));
+
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    list?.addEventListener("scroll", measure);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+      list?.removeEventListener("scroll", measure);
+    };
   }, [value, items]);
 
   return (
@@ -50,7 +67,7 @@ export function SegmentedTabs({
       ref={listRef}
       role="tablist"
       className={cn(
-        "relative isolate flex items-center rounded-full p-1",
+        "relative isolate flex flex-nowrap items-center rounded-full p-1",
         tone === "light" &&
           "bg-ink/[0.045] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]",
         tone === "onGlass" &&
@@ -71,7 +88,7 @@ export function SegmentedTabs({
       {items.map((item) => {
         const selected = item.id === value;
         const classes = cn(
-          "relative z-10 rounded-full px-4 py-2 text-[11px] font-medium tracking-[0.16em] uppercase transition-colors duration-300",
+          "relative z-10 shrink-0 rounded-full px-4 py-2 text-[11px] font-medium tracking-[0.16em] uppercase whitespace-nowrap transition-colors duration-300",
           selected ? "text-ivory" : "text-ink-soft hover:text-ink",
         );
 
@@ -81,8 +98,10 @@ export function SegmentedTabs({
         };
 
         if (item.href) {
+          const isInPage = item.href.startsWith("#");
+          const TabLink = isInPage ? "a" : Link;
           return (
-            <a
+            <TabLink
               key={item.id}
               ref={bindRef}
               href={item.href}
@@ -92,7 +111,7 @@ export function SegmentedTabs({
               onClick={() => onChange?.(item.id)}
             >
               {item.label}
-            </a>
+            </TabLink>
           );
         }
 

@@ -9,18 +9,23 @@ const nav = [
   { id: "overview", href: "/#top", label: "Overview" },
   { id: "brief", href: "/#brief", label: "Brief" },
   { id: "missions", href: "/missions", label: "Missions" },
-  { id: "join", href: "/#join", label: "Join" },
+  { id: "passport", href: "/passport", label: "Passport" },
 ];
+
+function routeTab(pathname: string) {
+  if (pathname.startsWith("/missions")) return "missions";
+  if (pathname.startsWith("/passport")) return "passport";
+  return null;
+}
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const [active, setActive] = useState(
-    pathname === "/missions" ? "missions" : "overview",
-  );
+  const lockedTab = routeTab(pathname);
+  const [active, setActive] = useState("overview");
+  const selected = lockedTab ?? active;
 
   useEffect(() => {
-    if (pathname === "/missions") {
-      setActive("missions");
+    if (lockedTab) {
       return;
     }
 
@@ -50,7 +55,7 @@ export function SiteHeader() {
 
     sections.forEach((section) => observer.observe(section.el));
     return () => observer.disconnect();
-  }, [pathname]);
+  }, [lockedTab, pathname]);
 
   return (
     <header className="sticky top-0 z-30">
@@ -66,10 +71,10 @@ export function SiteHeader() {
             </span>
           </Link>
 
-          <nav className="hidden md:block" aria-label="Primary">
+          <nav className="hidden min-w-0 overflow-x-auto md:block" aria-label="Primary">
             <SegmentedTabs
               items={nav}
-              value={active}
+              value={selected}
               onChange={setActive}
               tone="onGlass"
             />
@@ -77,7 +82,7 @@ export function SiteHeader() {
 
           <Link
             href="/#join"
-            className="hidden rounded-full border border-ink/10 bg-navy px-4 py-2 text-[11px] tracking-[0.18em] text-ivory uppercase transition hover:bg-air-blue sm:inline-flex"
+            className="hidden shrink-0 rounded-full border border-ink/10 bg-navy px-4 py-2 text-[11px] tracking-[0.18em] text-ivory uppercase transition hover:bg-air-blue sm:inline-flex"
           >
             Join the Expedition
           </Link>
@@ -86,7 +91,7 @@ export function SiteHeader() {
           <nav aria-label="Primary">
             <SegmentedTabs
               items={nav}
-              value={active}
+              value={selected}
               onChange={setActive}
               className="w-full justify-between overflow-x-auto"
             />

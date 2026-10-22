@@ -28,9 +28,11 @@ export function SegmentedTabs({
   const listRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
   const [indicator, setIndicator] = useState({ left: 4, width: 0, height: 0, top: 4 });
+  const [mounted, setMounted] = useState(false);
 
   useLayoutEffect(() => {
     const list = listRef.current;
+    setMounted(true);
 
     const measure = () => {
       const active = itemRefs.current.get(value);
@@ -75,6 +77,7 @@ export function SegmentedTabs({
         className,
       )}
     >
+      {mounted ? (
       <span
         aria-hidden
         className="pointer-events-none absolute rounded-full bg-navy shadow-[0_8px_24px_-12px_rgba(11,28,61,0.7)] transition-[left,top,width,height] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -85,6 +88,7 @@ export function SegmentedTabs({
           height: indicator.height || undefined,
         }}
       />
+      ) : null}
       {items.map((item) => {
         const selected = item.id === value;
         const classes = cn(

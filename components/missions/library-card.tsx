@@ -1,6 +1,7 @@
 import type { LibraryMission } from "@/lib/mission-library";
 import { PaperCard } from "@/components/ui/paper-card";
 import { Stamp } from "@/components/ui/stamp";
+import Link from "next/link";
 
 const statusTone = {
   "Open berth": "red" as const,
@@ -11,6 +12,10 @@ const statusTone = {
 
 export function LibraryCard({ mission }: { mission: LibraryMission }) {
   return (
+    <Link
+      href={`/missions/${mission.id}`}
+      className="block h-full rounded-[1.6rem] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+    >
     <PaperCard className="flex h-full flex-col p-6 transition duration-300 hover:-translate-y-1 sm:p-7">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[11px] font-medium tracking-[0.32em] text-gold">
@@ -41,5 +46,6 @@ export function LibraryCard({ mission }: { mission: LibraryMission }) {
         </div>
       </dl>
     </PaperCard>
+    </Link>
   );
 }

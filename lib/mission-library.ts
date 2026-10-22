@@ -124,3 +124,19 @@ export const libraryCategories = [
   "All",
   ...Array.from(new Set(libraryMissions.map((mission) => mission.category))),
 ];
+
+export function getLibraryMission(id: string) {
+  return libraryMissions.find((mission) => mission.id === id);
+}
+
+export function getAdjacentLibraryMissions(id: string) {
+  const index = libraryMissions.findIndex((mission) => mission.id === id);
+  if (index === -1) {
+    return { previous: undefined, next: undefined };
+  }
+
+  return {
+    previous: libraryMissions[index - 1],
+    next: libraryMissions[index + 1],
+  };
+}

@@ -174,8 +174,8 @@ Home featured cards (`MissionCard`) are **not** linked to detail pages.
 - Briefing (what / experience / why)
 - Objectives checklist (typically 5 steps)
 - Reward stamp + copy
-- **Accept Mission** (from NOT STARTED) → **IN PROGRESS**; stamp stays locked; completed count unchanged
-- **Mark as completed** (only from IN PROGRESS) → **COMPLETED**; stamp date; demo disclaimer; not verified real work
+- **Accept Mission** (from NOT STARTED) → **IN PROGRESS**; stamp stays locked
+- **Submit field report** → **PENDING PARTNER CONFIRMATION**. Demo panel then simulates partner confirmation and HQ review. Only **VERIFIED** unlocks the stamp
 - Back to library; previous/next by library order
 - Metadata title `${title} · Blue Letter`
 
@@ -212,7 +212,8 @@ Home featured cards (`MissionCard`) are **not** linked to detail pages.
 | Home featured status tabs | Client filter on `featuredMissions.status` |
 | Library card click | Navigates to detail |
 | Accept Mission | NOT STARTED → IN PROGRESS in localStorage; survives refresh; does **not** unlock stamp |
-| Mark as completed | IN PROGRESS → COMPLETED + date; unlocks stamp; demo only |
+| Submit field report | IN PROGRESS → pending partner confirmation. Text and attachment metadata stay in localStorage |
+| Demo verification | Partner confirmation → pending admin review → verified. Stamp unlocks only then |
 | Previous / Next | Static links from adjacent library rows |
 | Passport stamps | Link to `/missions/[id]`; locked unless completed |
 | Logbook filters | Client-only mission + region tabs; **All stories** resets both |
@@ -326,23 +327,29 @@ Utilities: `.site-canvas`, `.surface-lift`, `.gold-rule`, `.hairline`, `.animate
 
 ## 8. Mission progress tracking (**implemented**)
 
-Explorer progress is a **frontend demo** in this browser only. It is not authentication, not enrollment, and not verified completion of a real mission.
+Explorer progress is a **frontend demo** in this browser only. It is not authentication, not enrollment, and not a real review by a partner or HQ.
 
-### Three states
+### Five states
 
 Stored values use kebab-case. The UI labels them in title case.
 
-| State | Stored `status` | How it is reached | Mission Detail | Passport stamp | Counts as completed? |
+| State | Stored `status` | How it is reached | Mission Detail | Passport stamp | Counts as verified? |
 | --- | --- | --- | --- | --- | --- |
-| **NOT STARTED** | *(id absent from `missions`)* | Default | **Accept Mission** button | Locked, muted/outlined, caption “Not started”, no date | No |
-| **IN PROGRESS** | `in-progress` | User clicks **Accept Mission** | “In progress” panel; **Mark as completed**; stamp stays locked | Locked, muted/outlined, gold caption “In progress”, no completion date | No |
-| **COMPLETED** | `completed` | User clicks **Mark as completed** while already in progress | “Completed · demo log” + date; disclaimer that this is not verified | Unlocked full-color stamp + completion date | Yes — identity count, progress bar, rank |
+| **NOT STARTED** | *(id absent)* | Default | **Accept Mission** | Locked, “Not started” | No |
+| **IN PROGRESS** | `in-progress` | **Accept Mission** | **Submit field report** opens the report form. Stamp stays locked | Locked, “In progress” | No |
+| **PENDING PARTNER CONFIRMATION** | `pending-partner` | Submit a reflection and a discovery note. Optional attachment metadata only | Confirmation copy plus **Demo verification panel** → **Simulate partner confirmation** | Locked, “Awaiting partner” | No |
+| **PENDING ADMIN REVIEW** | `pending-admin` | Demo partner confirmation | Same panel → **Simulate admin review** | Locked, “Awaiting review” | No |
+| **VERIFIED** | `verified` | Demo admin review | Stamp copy and date | Unlocked, verification date | Yes — count, bar, rank |
 
-Rules that are implemented in `lib/passport.ts`:
+There is no **Mark as completed** control. A stamp unlocks only from `verified`.
 
-- `acceptMission(id)` writes `in-progress` + `acceptedAt` only if that id is not already in the store.
-- `completeMission(id)` writes `completed` + `completedAt` only if current status is `in-progress`. Not-started missions cannot be completed in one step.
-- Ids must be existing `LibraryMission.id` slugs; unknown ids are ignored.
+Rules in `lib/passport.ts`:
+
+- `acceptMission` writes `in-progress` only if that id is absent.
+- `submitFieldReport` writes `pending-partner` plus the text report only from `in-progress`. Empty text is ignored. Attachment metadata is name, type, and size. File bytes are not stored.
+- `confirmPartner` moves `pending-partner` → `pending-admin`.
+- `approveReview` moves `pending-admin` → `verified` and sets `verifiedAt`.
+- Unknown mission ids are ignored.
 
 ### localStorage persistence
 
@@ -350,31 +357,32 @@ Rules that are implemented in `lib/passport.ts`:
 | --- | --- |
 | Key | `blue-letter.passport.v1` (`PASSPORT_STORAGE_KEY`) |
 | Event | `blue-letter-passport` dispatched after writes; `storage` listened for other tabs |
-| Hook | `components/passport/use-passport.ts` — empty state until `useEffect` (safe for SSR / `window`) |
+| Hook | `components/passport/use-passport.ts` — `useSyncExternalStore`; server snapshot until the client store is read |
 | Readers | Mission Detail (`AcceptMission`) and Passport (`ExpeditionPassport`) |
 
-Payload (`version: 2`):
+Payload (`version: 3`):
 
 ```json
 {
-  "version": 2,
+  "version": 3,
   "missions": {
-    "mission-crate": {
-      "status": "completed",
-      "acceptedAt": "2026-10-22T05:13:28.424Z",
-      "completedAt": "2026-10-22T05:13:46.903Z"
-    },
     "treasure-hunt": {
-      "status": "in-progress",
-      "acceptedAt": "2026-10-22T05:14:10.509Z"
+      "status": "pending-partner",
+      "acceptedAt": "2026-10-22T05:14:10.509Z",
+      "report": {
+        "reflection": "We looked for the unnamed stone.",
+        "discovery": "The nearest cousin was a river pebble.",
+        "submittedAt": "2026-11-02T03:00:00.000Z",
+        "attachment": { "name": "pebble.jpg", "type": "image/jpeg", "size": 1200 }
+      }
     }
   }
 }
 ```
 
-- **Not stored:** explorer name, expedition ID, join date, rank (rank is computed from completed count).
-- **SSR:** `readPassport()` / `writePassport()` no-op when `typeof window === "undefined"` (return empty store / skip write).
-- **Legacy v1:** `{ "completed": { "<id>": "<iso-date>" } }` is migrated on read to `status: "completed"` with that date as both `acceptedAt` and `completedAt`, then rewritten as version 2 so prior demo stamps are not dropped.
+- **Not stored:** explorer name, expedition ID, join date, rank, or file contents.
+- **SSR:** `readPassport()` / `writePassport()` no-op when `typeof window === "undefined"`.
+- **Legacy:** version 1 `{ "completed": { id: date } }` and version 2 `status: "completed"` migrate on read to `verified` with that date as `verifiedAt`, then rewrite as version 3. Prior demo stamps stay in the book. A `completed` entry without a date falls back to `in-progress`.
 
 Clearing the key in DevTools resets all explorer progress to NOT STARTED.
 

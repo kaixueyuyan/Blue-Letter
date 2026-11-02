@@ -76,10 +76,10 @@ const fallbackMark = {
   port: "HQ",
 };
 
-function caption(status: MissionProgressStatus, completedAt?: string) {
-  if (status === "completed" && completedAt) {
-    return formatStampDate(completedAt);
-  }
+function caption(status: MissionProgressStatus, verifiedAt?: string) {
+  if (status === "verified" && verifiedAt) return formatStampDate(verifiedAt);
+  if (status === "pending-admin") return "Awaiting review";
+  if (status === "pending-partner") return "Awaiting partner";
   if (status === "in-progress") return "In progress";
   return "Not started";
 }
@@ -87,14 +87,14 @@ function caption(status: MissionProgressStatus, completedAt?: string) {
 export function MissionStamp({
   dossier,
   status,
-  completedAt,
+  verifiedAt,
 }: {
   dossier: MissionDossier;
   status: MissionProgressStatus;
-  completedAt?: string;
+  verifiedAt?: string;
 }) {
   const mark = marks[dossier.id] ?? fallbackMark;
-  const unlocked = status === "completed";
+  const unlocked = status === "verified";
 
   return (
     <article className="flex flex-col items-center text-center">
@@ -103,7 +103,7 @@ export function MissionStamp({
         className="group focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
       >
         <span className="sr-only">
-          {dossier.title}, {caption(status, completedAt)}
+          {dossier.title}, {caption(status, verifiedAt)}
         </span>
         <div
           className={cn(
@@ -165,10 +165,12 @@ export function MissionStamp({
         <p
           className={cn(
             "mt-1 text-[11px] tracking-[0.18em] uppercase",
-            status === "in-progress" ? "text-gold-ink" : "text-ink-soft",
+            status === "not-started" || status === "verified"
+              ? "text-ink-soft"
+              : "text-gold-ink",
           )}
         >
-          {caption(status, completedAt)}
+          {caption(status, verifiedAt)}
         </p>
       </Link>
     </article>

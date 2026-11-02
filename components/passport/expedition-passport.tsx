@@ -65,8 +65,8 @@ export function ExpeditionPassport() {
               </h2>
             </div>
             <p className="max-w-sm text-sm leading-6 text-ink-soft">
-              Full-color stamps are completed. In-progress berths stay locked.
-              Open a dossier to accept or mark a demo completion.
+              Full-color stamps are verified. Reports still with a partner or
+              with HQ stay locked.
             </p>
           </div>
 
@@ -76,7 +76,7 @@ export function ExpeditionPassport() {
                 key={dossier.id}
                 dossier={dossier}
                 status={statusOf(dossier.id)}
-                completedAt={missions[dossier.id]?.completedAt}
+                verifiedAt={missions[dossier.id]?.verifiedAt}
               />
             ))}
           </div>

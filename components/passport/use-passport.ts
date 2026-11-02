@@ -4,11 +4,14 @@ import {
   PASSPORT_EVENT,
   PASSPORT_STORAGE_KEY,
   acceptMission,
-  completeMission,
+  approveReview,
   completedCount,
+  confirmPartner,
+  submitFieldReport,
   emptyPassport,
   getMissionStatus,
   readPassport,
+  type FieldAttachment,
   type MissionProgressStatus,
   type PassportState,
 } from "@/lib/passport";
@@ -56,8 +59,26 @@ export function usePassport() {
     acceptMission(id);
   }, []);
 
-  const complete = useCallback((id: string) => {
-    completeMission(id);
+  const submitReport = useCallback(
+    (
+      id: string,
+      report: {
+        reflection: string;
+        discovery: string;
+        attachment?: FieldAttachment;
+      },
+    ) => {
+      submitFieldReport(id, report);
+    },
+    [],
+  );
+
+  const confirm = useCallback((id: string) => {
+    confirmPartner(id);
+  }, []);
+
+  const approve = useCallback((id: string) => {
+    approveReview(id);
   }, []);
 
   const statusOf = useCallback(
@@ -71,6 +92,8 @@ export function usePassport() {
     completed: completedCount(state),
     statusOf,
     accept,
-    complete,
+    submitReport,
+    confirmPartner: confirm,
+    approveReview: approve,
   };
 }

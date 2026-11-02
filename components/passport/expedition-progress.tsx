@@ -19,7 +19,7 @@ export function ExpeditionProgress({
             Expedition progress
           </p>
           <h2 className="mt-2 font-display text-3xl font-medium tracking-tight text-ink">
-            {completed} of {total} missions logged
+            {completed} of {total} missions verified
           </h2>
         </div>
         <p className="text-sm text-ink-soft">
@@ -36,7 +36,7 @@ export function ExpeditionProgress({
         aria-valuemin={0}
         aria-valuemax={total}
         aria-valuenow={completed}
-        aria-label="Missions logged"
+        aria-label="Missions verified"
       >
         <div
           className="h-full rounded-full bg-gradient-to-r from-navy to-gold transition-[width] duration-500"

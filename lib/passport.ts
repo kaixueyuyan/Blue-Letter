@@ -2,14 +2,33 @@ import { libraryMissions } from "@/lib/mission-library";
 
 export const PASSPORT_STORAGE_KEY = "blue-letter.passport.v1";
 export const PASSPORT_EVENT = "blue-letter-passport";
-export const PASSPORT_VERSION = 2 as const;
+export const PASSPORT_VERSION = 3 as const;
 
-export type MissionProgressStatus = "not-started" | "in-progress" | "completed";
+export type MissionProgressStatus =
+  | "not-started"
+  | "in-progress"
+  | "pending-partner"
+  | "pending-admin"
+  | "verified";
+
+export type FieldAttachment = {
+  name: string;
+  type: string;
+  size: number;
+};
+
+export type FieldReport = {
+  reflection: string;
+  discovery: string;
+  attachment?: FieldAttachment;
+  submittedAt: string;
+};
 
 export type MissionProgress = {
-  status: "in-progress" | "completed";
+  status: "in-progress" | "pending-partner" | "pending-admin" | "verified";
   acceptedAt: string;
-  completedAt?: string;
+  verifiedAt?: string;
+  report?: FieldReport;
 };
 
 export type PassportState = {
@@ -83,20 +102,87 @@ function isIsoDate(value: unknown): value is string {
   return typeof value === "string" && !Number.isNaN(new Date(value).getTime());
 }
 
+const REPORT_LIMIT = 2000;
+
+function clipText(value: unknown) {
+  if (typeof value !== "string") return "";
+  return value.trim().slice(0, REPORT_LIMIT);
+}
+
+function parseAttachment(value: unknown): FieldAttachment | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const file = value as Partial<FieldAttachment>;
+  if (typeof file.name !== "string" || typeof file.size !== "number") return undefined;
+  if (!Number.isFinite(file.size) || file.size < 0) return undefined;
+  const name = file.name.trim().slice(0, 120);
+  if (!name) return undefined;
+  return {
+    name,
+    type: typeof file.type === "string" ? file.type.slice(0, 80) : "unknown",
+    size: file.size,
+  };
+}
+
+function parseReport(value: unknown): FieldReport | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const report = value as Partial<FieldReport>;
+  const reflection = clipText(report.reflection);
+  const discovery = clipText(report.discovery);
+  if (!reflection || !discovery || !isIsoDate(report.submittedAt)) return undefined;
+  const attachment = parseAttachment(report.attachment);
+  return {
+    reflection,
+    discovery,
+    submittedAt: report.submittedAt,
+    ...(attachment ? { attachment } : {}),
+  };
+}
+
 function parseEntry(value: unknown): MissionProgress | undefined {
   if (!value || typeof value !== "object") return undefined;
-  const entry = value as Partial<MissionProgress> & { status?: string };
+  const entry = value as {
+    status?: string;
+    acceptedAt?: string;
+    verifiedAt?: string;
+    completedAt?: string;
+    report?: unknown;
+  };
   if (!isIsoDate(entry.acceptedAt)) return undefined;
+  const report = parseReport(entry.report);
 
-  if (entry.status === "completed" && isIsoDate(entry.completedAt)) {
+  if (
+    (entry.status === "verified" && isIsoDate(entry.verifiedAt)) ||
+    (entry.status === "completed" && isIsoDate(entry.completedAt))
+  ) {
     return {
-      status: "completed",
+      status: "verified",
       acceptedAt: entry.acceptedAt,
-      completedAt: entry.completedAt,
+      verifiedAt: entry.status === "verified" ? entry.verifiedAt : entry.completedAt,
+      ...(report ? { report } : {}),
     };
   }
 
-  if (entry.status === "in-progress" || entry.status === "completed") {
+  if (entry.status === "pending-admin") {
+    return {
+      status: "pending-admin",
+      acceptedAt: entry.acceptedAt,
+      ...(report ? { report } : {}),
+    };
+  }
+
+  if (entry.status === "pending-partner" && report) {
+    return {
+      status: "pending-partner",
+      acceptedAt: entry.acceptedAt,
+      report,
+    };
+  }
+
+  if (
+    entry.status === "in-progress" ||
+    entry.status === "pending-partner" ||
+    entry.status === "completed"
+  ) {
     return {
       status: "in-progress",
       acceptedAt: entry.acceptedAt,
@@ -130,9 +216,9 @@ function parsePassport(raw: string | null): {
         if (!knownIds.has(id) || !isIsoDate(value) || missions[id]) continue;
         migrated = true;
         missions[id] = {
-          status: "completed",
+          status: "verified",
           acceptedAt: value,
-          completedAt: value,
+          verifiedAt: value,
         };
       }
     }
@@ -155,8 +241,17 @@ export function getMissionStatus(
 
 export function completedCount(state: PassportState) {
   return Object.values(state.missions).filter(
-    (entry) => entry.status === "completed",
+    (entry) => entry.status === "verified",
   ).length;
+}
+
+export function isFieldReportReady(reflection: string, discovery: string) {
+  return (
+    reflection.trim().length > 0 &&
+    reflection.trim().length <= REPORT_LIMIT &&
+    discovery.trim().length > 0 &&
+    discovery.trim().length <= REPORT_LIMIT
+  );
 }
 
 export function readPassport(): PassportState {
@@ -186,15 +281,55 @@ export function acceptMission(id: string, at = new Date()) {
   return state;
 }
 
-export function completeMission(id: string, at = new Date()) {
+export function submitFieldReport(
+  id: string,
+  input: { reflection: string; discovery: string; attachment?: FieldAttachment },
+  at = new Date(),
+) {
   if (!knownIds.has(id)) return readPassport();
+  const reflection = clipText(input.reflection);
+  const discovery = clipText(input.discovery);
+  if (!isFieldReportReady(reflection, discovery)) return readPassport();
   const state = readPassport();
   const current = state.missions[id];
   if (!current || current.status !== "in-progress") return state;
+  const attachment = parseAttachment(input.attachment);
+  state.missions[id] = {
+    status: "pending-partner",
+    acceptedAt: current.acceptedAt,
+    report: {
+      reflection,
+      discovery,
+      submittedAt: at.toISOString(),
+      ...(attachment ? { attachment } : {}),
+    },
+  };
+  writePassport(state);
+  return state;
+}
+
+export function confirmPartner(id: string) {
+  if (!knownIds.has(id)) return readPassport();
+  const state = readPassport();
+  const current = state.missions[id];
+  if (!current || current.status !== "pending-partner") return state;
   state.missions[id] = {
     ...current,
-    status: "completed",
-    completedAt: at.toISOString(),
+    status: "pending-admin",
+  };
+  writePassport(state);
+  return state;
+}
+
+export function approveReview(id: string, at = new Date()) {
+  if (!knownIds.has(id)) return readPassport();
+  const state = readPassport();
+  const current = state.missions[id];
+  if (!current || current.status !== "pending-admin") return state;
+  state.missions[id] = {
+    ...current,
+    status: "verified",
+    verifiedAt: at.toISOString(),
   };
   writePassport(state);
   return state;

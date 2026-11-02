@@ -95,6 +95,8 @@ export function MissionStamp({
 }) {
   const mark = marks[dossier.id] ?? fallbackMark;
   const unlocked = status === "verified";
+  const inProgress = status === "in-progress";
+  const faded = !unlocked && !inProgress;
 
   return (
     <article className="flex flex-col items-center text-center">
@@ -108,8 +110,8 @@ export function MissionStamp({
         <div
           className={cn(
             "relative flex h-36 w-36 items-center justify-center transition duration-300 group-hover:scale-[1.03]",
-            mark.ink,
-            unlocked ? "opacity-100" : "opacity-[0.38] grayscale",
+            inProgress ? "text-navy opacity-100" : mark.ink,
+            faded && "opacity-[0.38] grayscale",
           )}
         >
           <svg
@@ -124,8 +126,8 @@ export function MissionStamp({
               r="68"
               fill="none"
               stroke="currentColor"
-              strokeWidth={unlocked ? 2.4 : 1.6}
-              strokeDasharray={unlocked ? undefined : "5 6"}
+              strokeWidth={unlocked ? 2.4 : inProgress ? 3.2 : 1.6}
+              strokeDasharray={unlocked || inProgress ? undefined : "5 6"}
             />
             <circle
               cx="72"
@@ -133,8 +135,8 @@ export function MissionStamp({
               r="58"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1"
-              opacity="0.7"
+              strokeWidth={inProgress ? 1.6 : 1}
+              opacity={inProgress ? 1 : 0.7}
             />
             <circle
               cx="72"
@@ -142,19 +144,34 @@ export function MissionStamp({
               r="44"
               fill="none"
               stroke="currentColor"
-              strokeWidth="0.8"
-              strokeDasharray="2 4"
-              opacity="0.55"
+              strokeWidth={inProgress ? 1.2 : 0.8}
+              strokeDasharray={inProgress ? undefined : "2 4"}
+              opacity={inProgress ? 0.9 : 0.55}
             />
           </svg>
           <div className="pointer-events-none absolute inset-6 flex flex-col items-center justify-center">
-            <span className="font-display text-3xl leading-none">
+            <span
+              className={cn(
+                "font-display leading-none",
+                inProgress ? "text-4xl" : "text-3xl",
+              )}
+            >
               {mark.glyph}
             </span>
-            <span className="mt-1 max-w-[6.5rem] text-[8px] font-medium tracking-[0.16em] uppercase">
+            <span
+              className={cn(
+                "mt-1 max-w-[6.5rem] font-medium tracking-[0.16em] uppercase",
+                inProgress ? "text-[9px]" : "text-[8px]",
+              )}
+            >
               {dossier.rewardStamp}
             </span>
-            <span className="mt-1 text-[8px] tracking-[0.2em] uppercase opacity-70">
+            <span
+              className={cn(
+                "mt-1 tracking-[0.2em] uppercase",
+                inProgress ? "text-[9px] opacity-100" : "text-[8px] opacity-70",
+              )}
+            >
               {mark.port}
             </span>
           </div>

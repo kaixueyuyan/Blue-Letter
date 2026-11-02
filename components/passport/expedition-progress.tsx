@@ -15,7 +15,7 @@ export function ExpeditionProgress({
     <section className="surface-lift rounded-[1.6rem] border border-ink/8 bg-paper p-6 sm:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">
+          <p className="text-[11px] font-medium tracking-[0.28em] text-gold-ink uppercase">
             Expedition progress
           </p>
           <h2 className="mt-2 font-display text-3xl font-medium tracking-tight text-ink">

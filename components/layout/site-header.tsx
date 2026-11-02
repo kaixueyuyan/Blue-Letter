@@ -9,11 +9,13 @@ const nav = [
   { id: "overview", href: "/#top", label: "Overview" },
   { id: "brief", href: "/#brief", label: "Brief" },
   { id: "missions", href: "/missions", label: "Missions" },
+  { id: "logbook", href: "/logbook", label: "Logbook" },
   { id: "passport", href: "/passport", label: "Passport" },
 ];
 
 function routeTab(pathname: string) {
   if (pathname.startsWith("/missions")) return "missions";
+  if (pathname.startsWith("/logbook")) return "logbook";
   if (pathname.startsWith("/passport")) return "passport";
   return null;
 }
@@ -62,7 +64,10 @@ export function SiteHeader() {
       <div className="gold-rule h-px w-full" />
       <div className="border-b border-ink/8 bg-ivory/75 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
-          <Link href="/" className="group flex min-w-0 items-center gap-3">
+          <Link
+            href="/"
+            className="group flex min-w-0 items-center gap-3 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
+          >
             <span className="flex h-8 w-8 items-center justify-center rounded-full border border-gold/50 text-[10px] tracking-[0.18em] text-navy">
               BL
             </span>
@@ -82,18 +87,19 @@ export function SiteHeader() {
 
           <Link
             href="/#join"
-            className="hidden shrink-0 rounded-full border border-ink/10 bg-navy px-4 py-2 text-[11px] tracking-[0.18em] text-ivory uppercase transition hover:bg-air-blue sm:inline-flex"
+            className="hidden shrink-0 rounded-full border border-ink/10 bg-navy px-4 py-2 text-[11px] tracking-[0.18em] text-ivory uppercase transition hover:bg-air-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink sm:inline-flex"
           >
             Join the Expedition
           </Link>
         </div>
-        <div className="border-t border-ink/6 px-5 py-2 md:hidden">
+        <div className="border-t border-ink/6 px-3 py-2 md:hidden">
           <nav aria-label="Primary">
             <SegmentedTabs
               items={nav}
               value={selected}
               onChange={setActive}
-              className="w-full justify-between overflow-x-auto"
+              compact
+              className="w-full overflow-x-auto"
             />
           </nav>
         </div>

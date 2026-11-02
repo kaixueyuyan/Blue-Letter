@@ -14,11 +14,11 @@ export function LibraryCard({ mission }: { mission: LibraryMission }) {
   return (
     <Link
       href={`/missions/${mission.id}`}
-      className="block h-full rounded-[1.6rem] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+      className="block h-full rounded-[1.6rem] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
     >
     <PaperCard className="flex h-full flex-col p-6 transition duration-300 hover:-translate-y-1 sm:p-7">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[11px] font-medium tracking-[0.32em] text-gold">
+        <p className="text-[11px] font-medium tracking-[0.32em] text-gold-ink">
           {mission.number}
         </p>
         <Stamp
@@ -33,15 +33,15 @@ export function LibraryCard({ mission }: { mission: LibraryMission }) {
       <p className="mt-3 flex-1 leading-7 text-ink-soft">{mission.description}</p>
       <dl className="mt-6 grid grid-cols-3 gap-3 border-t border-ink/8 pt-4 text-sm">
         <div>
-          <dt className="text-[10px] tracking-[0.22em] text-gold uppercase">Category</dt>
+          <dt className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">Category</dt>
           <dd className="mt-1 text-ink">{mission.category}</dd>
         </div>
         <div>
-          <dt className="text-[10px] tracking-[0.22em] text-gold uppercase">Difficulty</dt>
+          <dt className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">Difficulty</dt>
           <dd className="mt-1 text-ink">{mission.difficulty}</dd>
         </div>
         <div>
-          <dt className="text-[10px] tracking-[0.22em] text-gold uppercase">Time</dt>
+          <dt className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">Time</dt>
           <dd className="mt-1 text-ink">{mission.time}</dd>
         </div>
       </dl>

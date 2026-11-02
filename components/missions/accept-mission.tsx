@@ -30,7 +30,7 @@ export function AcceptMission({
         role="status"
         className="rounded-2xl border border-gold/40 bg-gold/10 px-6 py-5"
       >
-        <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">
+        <p className="text-[11px] font-medium tracking-[0.28em] text-gold-ink uppercase">
           Completed · demo log
         </p>
         <p className="mt-2 font-display text-2xl text-navy">
@@ -41,7 +41,7 @@ export function AcceptMission({
         </p>
         <Link
           href="/passport"
-          className="mt-4 inline-flex text-[11px] font-medium tracking-[0.22em] text-navy uppercase transition hover:text-gold"
+          className="mt-4 inline-flex text-[11px] font-medium tracking-[0.22em] text-navy uppercase transition hover:text-gold-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
         >
           Open Expedition Passport →
         </Link>
@@ -52,7 +52,7 @@ export function AcceptMission({
   if (status === "in-progress") {
     return (
       <div className="rounded-2xl border border-navy/15 bg-paper px-6 py-5">
-        <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">
+        <p className="text-[11px] font-medium tracking-[0.28em] text-gold-ink uppercase">
           In progress
         </p>
         <p className="mt-2 font-display text-2xl text-navy">
@@ -67,13 +67,13 @@ export function AcceptMission({
           <button
             type="button"
             onClick={() => complete(missionId)}
-            className="inline-flex items-center justify-center rounded-full bg-navy px-8 py-3.5 text-[12px] font-medium tracking-[0.18em] text-ivory uppercase shadow-[0_16px_32px_-18px_rgba(11,28,61,0.85)] transition hover:bg-air-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+            className="inline-flex items-center justify-center rounded-full bg-navy px-8 py-3.5 text-[12px] font-medium tracking-[0.18em] text-ivory uppercase shadow-[0_16px_32px_-18px_rgba(11,28,61,0.85)] transition hover:bg-air-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
           >
             Mark as completed
           </button>
           <Link
             href="/passport"
-            className="text-[11px] font-medium tracking-[0.22em] text-navy uppercase transition hover:text-gold"
+            className="text-[11px] font-medium tracking-[0.22em] text-navy uppercase transition hover:text-gold-ink focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
           >
             Open Expedition Passport →
           </Link>
@@ -90,7 +90,7 @@ export function AcceptMission({
     <button
       type="button"
       onClick={() => accept(missionId)}
-      className="inline-flex items-center justify-center rounded-full bg-navy px-8 py-3.5 text-[12px] font-medium tracking-[0.18em] text-ivory uppercase shadow-[0_16px_32px_-18px_rgba(11,28,61,0.85)] transition hover:bg-air-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+      className="inline-flex items-center justify-center rounded-full bg-navy px-8 py-3.5 text-[12px] font-medium tracking-[0.18em] text-ivory uppercase shadow-[0_16px_32px_-18px_rgba(11,28,61,0.85)] transition hover:bg-air-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
     >
       Accept Mission
     </button>

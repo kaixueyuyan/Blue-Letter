@@ -2,6 +2,7 @@
 
 import {
   PASSPORT_EVENT,
+  PASSPORT_STORAGE_KEY,
   acceptMission,
   completeMission,
   completedCount,
@@ -11,31 +12,52 @@ import {
   type MissionProgressStatus,
   type PassportState,
 } from "@/lib/passport";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
+
+const serverPassport = emptyPassport();
+
+let cachedRaw: string | null | undefined;
+let cachedState: PassportState = serverPassport;
+
+function subscribe(onStoreChange: () => void) {
+  const notify = () => {
+    cachedRaw = undefined;
+    onStoreChange();
+  };
+  window.addEventListener("storage", notify);
+  window.addEventListener(PASSPORT_EVENT, notify);
+  return () => {
+    window.removeEventListener("storage", notify);
+    window.removeEventListener(PASSPORT_EVENT, notify);
+  };
+}
+
+function getSnapshot() {
+  const raw = window.localStorage.getItem(PASSPORT_STORAGE_KEY);
+  if (cachedRaw === raw && cachedState !== serverPassport) return cachedState;
+  cachedRaw = raw;
+  cachedState = readPassport();
+  return cachedState;
+}
+
+function getServerSnapshot() {
+  return serverPassport;
+}
 
 export function usePassport() {
-  const [state, setState] = useState<PassportState>(() => emptyPassport());
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const sync = () => setState(readPassport());
-    sync();
-    setReady(true);
-
-    window.addEventListener("storage", sync);
-    window.addEventListener(PASSPORT_EVENT, sync);
-    return () => {
-      window.removeEventListener("storage", sync);
-      window.removeEventListener(PASSPORT_EVENT, sync);
-    };
-  }, []);
+  const state = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
+  const ready = state !== serverPassport;
 
   const accept = useCallback((id: string) => {
-    setState(acceptMission(id));
+    acceptMission(id);
   }, []);
 
   const complete = useCallback((id: string) => {
-    setState(completeMission(id));
+    completeMission(id);
   }, []);
 
   const statusOf = useCallback(

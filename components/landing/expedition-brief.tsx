@@ -33,7 +33,7 @@ export function ExpeditionBrief() {
                 key={step.numeral}
                 className="surface-lift flex gap-4 rounded-2xl border border-ink/8 bg-paper px-5 py-5"
               >
-                <span className="pt-1 text-[11px] tracking-[0.22em] text-gold">
+                <span className="pt-1 text-[11px] tracking-[0.22em] text-gold-ink">
                   {step.numeral}
                 </span>
                 <div>

@@ -6,15 +6,8 @@ This document describes the **actual** repository as inspected on 22 Oct 2026. I
 
 - Branch: `main`, tracking `origin/main`
 - Remote (verified): `https://github.com/kaixueyuyan/Blue-Letter.git`
-- Latest **committed** commit: `8a2364b` — “Refine mission library copy”
-- **Uncommitted in the working tree** (implemented locally, not on GitHub at inspection):
-  - `app/missions/[slug]/`
-  - `lib/mission-details.ts`
-  - `components/missions/mission-detail.tsx`
-  - `components/missions/accept-mission.tsx`
-  - plus related edits to `lib/mission-library.ts`, `components/missions/library-card.tsx`, `components/layout/site-header.tsx`, `components/ui/segmented-tabs.tsx`
-
-Treat Mission Detail as **implemented in the local tree**, not as already shipped to `origin` until those files are committed and pushed.
+- Latest commit: `c262cc5` — “Complete expedition passport and mission progress tracking”
+- **Uncommitted locally:** Global Logbook (`app/logbook/`, `lib/logbook.ts`, `components/logbook/`, header Logbook tab)
 
 ---
 
@@ -34,6 +27,7 @@ Treat Mission Detail as **implemented in the local tree**, not as already shippe
 2. Open the Mission Library: ten briefs as berths, filter by category.
 3. Open a Mission Detail dossier: briefing, checklist, reward stamp, accept / demo-complete, previous/next.
 4. Open Expedition Passport: mock explorer identity, stamps, and local progress.
+5. Open Global Logbook: demo field notes, map pins, filters, story pages.
 
 There is **no** login, matching, or real submission flow. Accept and complete are a local demo log.
 
@@ -66,7 +60,7 @@ npm run lint   # eslint
 
 **Client persistence:** `localStorage` key `blue-letter.passport.v1` (mission progress only; not auth).
 
-**Deployment:** README still contains the Create Next App Vercel boilerplate. **No Vercel project config was verified in this repo.** GitHub remote exists; last pushed commit at inspection is `8a2364b`.
+**Deployment:** README still contains the Create Next App Vercel boilerplate. **No Vercel project config was verified in this repo.** GitHub remote exists; HEAD at inspection is `c262cc5`.
 
 ---
 
@@ -80,17 +74,21 @@ app/
   missions/page.tsx          Mission Library
   missions/[slug]/page.tsx   Mission Detail (dynamic)
   passport/page.tsx          Expedition Passport
+  logbook/page.tsx           Global Logbook
+  logbook/[slug]/page.tsx    Story detail (dynamic)
 components/
   landing/                   Home-only sections
   layout/                    SiteHeader, SiteFooter
   missions/                  Library + detail + home featured card
-  passport/                  Passport identity, stamps, progress
+  passport/                  expedition-passport, identity, stamps, progress, use-passport
+  logbook/                   archive, map, featured, cards, story detail, visual plates
   ui/                        Shared primitives
 lib/
   missions.ts                Home featured missions (4) + expedition steps
   mission-library.ts         Library list (10) + lookup helpers
   mission-details.ts         Extra copy keyed by library id
   passport.ts                Explorer mock identity, ranks, local progress store
+  logbook.ts                 Eight fictional field notes; helpers; map projection
   cn.ts                      Class name join helper
 public/                      Default CNA SVGs (unused by current pages)
 ```
@@ -108,7 +106,7 @@ Root layout does **not** wrap header/footer. Each page composes `SiteHeader` + `
 
 ### Layout
 
-- `site-header.tsx` — sticky glass header; tabs Overview `/#top`, Brief `/#brief`, Missions `/missions`, Passport `/passport`; CTA “Join the Expedition” → `/#join`. Missions tab stays selected on `/missions*`; Passport on `/passport`. On Home, IntersectionObserver tracks hash sections.
+- `site-header.tsx` — sticky glass header; tabs Overview `/#top`, Brief `/#brief`, Missions `/missions`, Logbook `/logbook`, Passport `/passport`; CTA “Join the Expedition” → `/#join`. Locked tabs: `/missions*`, `/logbook*`, `/passport`. On Home, IntersectionObserver tracks hash sections.
 - `site-footer.tsx` — gold rule + expedition tagline
 
 ### Mission data
@@ -118,6 +116,8 @@ Root layout does **not** wrap header/footer. Each page composes `SiteHeader` + `
 | `lib/missions.ts` | `featuredMissions` (4) for Home cards; `expeditionSteps` (I–III) |
 | `lib/mission-library.ts` | Canonical **10** library rows: `id`, `number`, `title`, `description`, `category`, `difficulty`, `time`, `status` |
 | `lib/mission-details.ts` | Extra copy per `id`: briefing, experience, why, objectives, reward stamp/text. Merges with library via `getMissionDossier(slug)`. Reuses Home `summary` / `fieldNote` / `stamp` for the four featured IDs when present. |
+| `lib/passport.ts` | Mock explorer identity, rank table, **three-state progress store** (`not-started` / `in-progress` / `completed`) |
+| `lib/logbook.ts` | Eight **fictional** field notes. `missionSlug` points at `LibraryMission.id`. Approximate `lat`/`lng` for the SVG chart only. |
 
 **Library slugs (`id` = URL slug)**
 
@@ -142,6 +142,8 @@ Root layout does **not** wrap header/footer. Each page composes `SiteHeader` + `
 | `/missions` | `app/missions/page.tsx` | Library |
 | `/missions/[slug]` | `app/missions/[slug]/page.tsx` | `generateStaticParams` from `libraryMissions`; unknown slug → `notFound()` |
 | `/passport` | `app/passport/page.tsx` | Expedition Passport (client island for localStorage) |
+| `/logbook` | `app/logbook/page.tsx` | Global Logbook gallery + map |
+| `/logbook/[slug]` | `app/logbook/[slug]/page.tsx` | Story template; `generateStaticParams` from `logbookStories`; unknown slug → `notFound()` |
 | No API routes | — | — |
 
 Home `#top`, `#brief`, `#missions`, `#join` are in-page section ids, not separate routes.
@@ -166,36 +168,56 @@ Home featured cards (`MissionCard`) are **not** linked to detail pages.
 - Ten `LibraryCard`s: number, status stamp, title, description, category, difficulty, time
 - Cards wrap `Link` to `/missions/${id}`
 
-### Mission Detail (`/missions/[slug]`) — implemented **in the local working tree**
+### Mission Detail (`/missions/[slug]`) — implemented
 
 - Header: number, title, status, category, difficulty, time
 - Briefing (what / experience / why)
 - Objectives checklist (typically 5 steps)
 - Reward stamp + copy
-- **Accept Mission** → local **in progress** (stamp stays locked)
-- **Mark as completed** (only after accept) → local **completed**, stamp date, demo disclaimer
+- **Accept Mission** (from NOT STARTED) → **IN PROGRESS**; stamp stays locked; completed count unchanged
+- **Mark as completed** (only from IN PROGRESS) → **COMPLETED**; stamp date; demo disclaimer; not verified real work
 - Back to library; previous/next by library order
 - Metadata title `${title} · Blue Letter`
 
 ### Expedition Passport (`/passport`) — implemented
 
-- Mock explorer identity (Clara Moreau), expedition ID, rank, join date
-- Ten unique visa stamps from library + `getMissionDossier` reward copy
-- Progress count/bar from **completed** missions only
-- Stamp states: not started (locked), in progress (locked + gold label), completed (unlocked + date)
+- Route `app/passport/page.tsx`; body is client island `ExpeditionPassport` (reads storage after mount)
+- Mock explorer identity from `explorerIdentity` in `lib/passport.ts` (not stored, not an account):
+  - Name: Clara Moreau
+  - Expedition ID: `BL-WE-26-0418`
+  - Berth: Overseas correspondent · Expedition HQ
+  - Join date: 12 March 2026
+  - Rank derived from **completed** count (Cadet 0, Correspondent 1, Field Officer 4, Expedition Lead 7, Master Explorer 10)
+- Ten unique visa stamps from `libraryMissions` + `getMissionDossier` reward copy
+- Progress count/bar from **completed** missions only (accepted-but-unfinished do not count)
+- Stamp click → `/missions/[id]`
+- Stamp display follows the three progress states (see §8)
+
+### Global Logbook (`/logbook`, `/logbook/[slug]`) — implemented
+
+- **Demo archive only.** Eyebrows and captions say fictional / demonstration / not a verified student record. No uploads, comments, messaging, or real photos.
+- Cover stories: two featured plates (`the-crate-that-smelled-of-rain`, `chili-cousins`) — magazine layout, large visuals, “Read field notes”.
+- Expedition map: **Natural Earth 50m** country polygons, Natural Earth projection, navy ocean / parchment land / gold borders (`lib/world-atlas.ts`, regenerate with `scripts/build-world-atlas.mjs`). Gold pins from story `lat`/`lng` via `projectAtlasPoint`. Notes that share a coast cluster until zoomed. Hover shows region + country. Click opens a demo preview (title, mission, region, summary, Read field notes). Zoom, pan, and reset sit on the plate. No runtime mapping library. Home still uses the decorative `WorldMap`.
+- Gallery: eight `StoryCard`s (title, mission, region, summary, date, gradient plate labeled “Demo plate · not a portrait”, “Read field notes”).
+- Client filters: mission (from related library titles) and region; **All stories** clears both.
+- Shared detail template `StoryDetail`: title, mission, region, date, visual, full story, discoveries, link to `/missions/{missionSlug}`, back to `/logbook`.
+- Data: `lib/logbook.ts` — `LogbookStory`; lookups `getLogbookStory`, `getFeaturedStories`, `logbookRegions`, `logbookMissionFilters`. Related missions use existing library slugs; briefs are not duplicated.
 
 ### Interactions — implemented
 
 | Interaction | Behavior |
 | --- | --- |
-| Header tabs | Hash links on Home; `/missions` for Missions; `/passport` for Passport |
+| Header tabs | Hash links on Home; `/missions`; `/logbook`; `/passport` |
 | Library category tabs | Client `useState` filter; not persisted |
 | Home featured status tabs | Client filter on `featuredMissions.status` |
 | Library card click | Navigates to detail |
-| Accept Mission | Sets `in-progress` in `localStorage`; survives refresh; does **not** unlock stamp |
-| Mark as completed | Allowed only from in-progress; sets `completed` + date; unlocks stamp; demo only |
+| Accept Mission | NOT STARTED → IN PROGRESS in localStorage; survives refresh; does **not** unlock stamp |
+| Mark as completed | IN PROGRESS → COMPLETED + date; unlocks stamp; demo only |
 | Previous / Next | Static links from adjacent library rows |
 | Passport stamps | Link to `/missions/[id]`; locked unless completed |
+| Logbook filters | Client-only mission + region tabs; **All stories** resets both |
+| Logbook map pins | Hover region/country; click opens preview; clustered notes split as you zoom; **View in gallery** scrolls to the card |
+| Story card / featured CTA | `/logbook/[slug]` |
 
 ### Other
 
@@ -221,7 +243,8 @@ Home featured cards (`MissionCard`) are **not** linked to detail pages.
 | navy | `#0b1c3d` | Hero, pills, primary buttons |
 | air-blue | `#1a3a73` | Button hover |
 | air-red | `#8a3a32` | “Open berth” stamp |
-| gold | `#b89a5c` | Eyebrows, labels, gold stamps |
+| gold | `#b89a5c` | Rules, borders, stamps, and gold text on navy | 
+| gold-ink | `#7a653c` | Small gold text on ivory or paper (WCAG AA, about 5:1) |
 | wax | `#6e4a32` | Token exists; little current use |
 
 Utilities: `.site-canvas`, `.surface-lift`, `.gold-rule`, `.hairline`, `.animate-ink`, `.route-dash`, `.compass-spin`.
@@ -256,10 +279,14 @@ Utilities: `.site-canvas`, `.surface-lift`, `.gold-rule`, `.hairline`, `.animate
 - **Two mission datasets:** Home keeps a richer 4-item `Mission` type (`code`, `origin`, `fieldNote`, status `Recruiting | In the field | Logged`). Library/detail use `LibraryMission` with `Open berth | In the field | Logged | Sealed`. IDs overlap for the first four missions; **do not assume the types are interchangeable**.
 - **Data-driven details:** one `[slug]` page; `getMissionDossier` merges library row + detail copy. Slug **is** `LibraryMission.id`.
 - **Avoid duplicating featured summaries:** `mission-details.ts` reads `featuredMissions` for briefing/stamp/field note on those four IDs.
-- **Client islands only where needed:** filters, header scroll spy, accept button, tab indicator. Pages themselves are Server Components.
-- **Naming:** kebab `id` slugs; `LibraryCard` vs Home `MissionCard`; Tailwind `font-display`, color tokens `text-ink`, `bg-navy`, `text-gold`.
+- **Client islands only where needed:** filters, header scroll spy, accept/complete actions, passport body, tab indicator. Pages themselves are Server Components.
+- **One progress store:** Detail and Passport both use `usePassport()` → `lib/passport.ts`. Do not add a second localStorage key for the same states.
+- **Library `status` ≠ explorer progress.** Catalog copy on library cards (`Open berth`, `In the field`, `Logged`, `Sealed`) is static mock data. Explorer progress is `not-started` / `in-progress` / `completed` in localStorage.
+- **Naming:** kebab `id` slugs; `LibraryCard` vs Home `MissionCard`; Tailwind `font-display`, color tokens `text-ink`, `bg-navy`, `text-gold` (accents and navy), `text-gold-ink` (labels on ivory/paper).
 - **cacheComponents:** dynamic detail page awaits `params` inside a child wrapped in `<Suspense>` (required in this Next 16 setup).
 - **Dependencies:** no extra packages beyond CNA defaults (Next, React, Tailwind, ESLint, TS).
+- **Logbook vs Passport:** Logbook is a curated fictional archive (`lib/logbook.ts`). Passport is this browser’s explorer progress. Completing a mission does **not** write a logbook story.
+- **Lightweight map:** Natural Earth 50m SVG atlas in `lib/world-atlas.ts`. Do not add Leaflet/Mapbox. Home `WorldMap` stays decorative.
 
 ---
 
@@ -282,15 +309,51 @@ Utilities: `.site-canvas`, `.surface-lift`, `.gold-rule`, `.hairline`, `.animate
 
 - Header “Join the Expedition” always goes to `/#join` (Home join section), including from Library/Detail
 - Library and Home use **different status vocabularies** for overlapping missions (e.g. Home “Recruiting” vs Library “Open berth”)
-- Mission Detail + library card linking exist locally; **not in `origin/main` at inspection** (`8a2364b`)
 - Next.js may warn about `scroll-behavior: smooth` on `<html>` during client navigations
 - Default Next 404 for unknown slugs; not branded
+- Logbook map is a Natural Earth plate with zoom and pan, not a street map. Gallery filters do not hide map pins.
+- Two library missions (`my-corner-of-the-world`, `secret-mission`) have no demo field note yet
+
+**Phase 6A polish (done)**
+
+- Home featured filters scroll horizontally, matching the library and logbook, so 375px does not widen the page
+- Mobile header tabs use a tighter pill and scroll the selected tab into view. Logbook and Passport stay on the same row
+- Passport progress uses `useSyncExternalStore` (same `blue-letter.passport.v1` key). Segmented-tab indicator no longer sets state just to mark mount
+- `text-gold-ink` (`#7a653c`) is for gold labels on ivory/paper. Accent gold `#b89a5c` stays on borders, stamps, and navy
+- Keyboard focus uses a gold-ink ring on light surfaces and the original gold ring on navy (map controls, on-dark buttons)
 
 ---
 
-## 8. Mission progress store (**implemented**)
+## 8. Mission progress tracking (**implemented**)
 
-Single key: `localStorage["blue-letter.passport.v1"]`.
+Explorer progress is a **frontend demo** in this browser only. It is not authentication, not enrollment, and not verified completion of a real mission.
+
+### Three states
+
+Stored values use kebab-case. The UI labels them in title case.
+
+| State | Stored `status` | How it is reached | Mission Detail | Passport stamp | Counts as completed? |
+| --- | --- | --- | --- | --- | --- |
+| **NOT STARTED** | *(id absent from `missions`)* | Default | **Accept Mission** button | Locked, muted/outlined, caption “Not started”, no date | No |
+| **IN PROGRESS** | `in-progress` | User clicks **Accept Mission** | “In progress” panel; **Mark as completed**; stamp stays locked | Locked, muted/outlined, gold caption “In progress”, no completion date | No |
+| **COMPLETED** | `completed` | User clicks **Mark as completed** while already in progress | “Completed · demo log” + date; disclaimer that this is not verified | Unlocked full-color stamp + completion date | Yes — identity count, progress bar, rank |
+
+Rules that are implemented in `lib/passport.ts`:
+
+- `acceptMission(id)` writes `in-progress` + `acceptedAt` only if that id is not already in the store.
+- `completeMission(id)` writes `completed` + `completedAt` only if current status is `in-progress`. Not-started missions cannot be completed in one step.
+- Ids must be existing `LibraryMission.id` slugs; unknown ids are ignored.
+
+### localStorage persistence
+
+| Item | Actual |
+| --- | --- |
+| Key | `blue-letter.passport.v1` (`PASSPORT_STORAGE_KEY`) |
+| Event | `blue-letter-passport` dispatched after writes; `storage` listened for other tabs |
+| Hook | `components/passport/use-passport.ts` — empty state until `useEffect` (safe for SSR / `window`) |
+| Readers | Mission Detail (`AcceptMission`) and Passport (`ExpeditionPassport`) |
+
+Payload (`version: 2`):
 
 ```json
 {
@@ -298,23 +361,22 @@ Single key: `localStorage["blue-letter.passport.v1"]`.
   "missions": {
     "mission-crate": {
       "status": "completed",
-      "acceptedAt": "2026-10-22T…",
-      "completedAt": "2026-10-22T…"
+      "acceptedAt": "2026-10-22T05:13:28.424Z",
+      "completedAt": "2026-10-22T05:13:46.903Z"
     },
     "treasure-hunt": {
       "status": "in-progress",
-      "acceptedAt": "2026-10-22T…"
+      "acceptedAt": "2026-10-22T05:14:10.509Z"
     }
   }
 }
 ```
 
-- Missing id → **not started**
-- `in-progress` → accepted; stamp locked; does not count toward completed
-- `completed` → stamp unlocked; date shown; counts toward rank/progress
-- Legacy v1 `{ "completed": { "<id>": "<iso>" } }` migrates those ids to **completed** (progress is not dropped)
-- Explorer identity remains mock constants in `lib/passport.ts`, not stored
-- `usePassport()` is the shared client hook for Detail and Passport
+- **Not stored:** explorer name, expedition ID, join date, rank (rank is computed from completed count).
+- **SSR:** `readPassport()` / `writePassport()` no-op when `typeof window === "undefined"` (return empty store / skip write).
+- **Legacy v1:** `{ "completed": { "<id>": "<iso-date>" } }` is migrated on read to `status: "completed"` with that date as both `acceptedAt` and `completedAt`, then rewritten as version 2 so prior demo stamps are not dropped.
+
+Clearing the key in DevTools resets all explorer progress to NOT STARTED.
 
 ---
 
@@ -333,5 +395,31 @@ Single key: `localStorage["blue-letter.passport.v1"]`.
 ## Quick start for the next agent
 
 1. Read this file, then `lib/passport.ts`, `app/passport/page.tsx`, `app/missions/[slug]/page.tsx`.
-2. Run `npm run dev` → `/`, `/missions`, `/missions/mission-crate`, `/passport`.
+2. Run `npm run dev` → `/`, `/missions`, `/missions/mission-crate`, `/passport`, `/logbook`, `/logbook/chili-cousins`.
 3. Progress lives in one store; do not add a second localStorage key for the same states.
+4. Logbook stories are demo fiction in `lib/logbook.ts`; do not treat them as real student records.
+
+---
+
+## 10. Privacy and safety (minors)
+
+Blue Letter involves children. Current product rules that are **already encoded in copy and architecture**:
+
+- Fictional names only (e.g. “Crew 07”); no real student names
+- Region-level pins only — not homes, schools, or GPS
+- Gradient visual plates, not identifying photographs
+- No public uploads, comments, or messaging
+- Pages labeled as demonstration / not verified records
+
+Do not add real participant content, geolocation, or UGC without a separate safety design.
+
+---
+
+## 11. Suggested next work (not built)
+
+- Custom branded 404
+- Optional: Home featured cards linking to `/missions/[slug]`
+- Product copy / README aligned with this expedition (README is still Create Next App)
+- Future phases only if requested: pairing, real submissions, accounts — none of these should ship without privacy review
+
+Passport progress and Global Logbook (demo archive) are **done**. Do not rebuild them unless asked.

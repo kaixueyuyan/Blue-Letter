@@ -17,13 +17,13 @@ export function MissionDetail({ dossier }: { dossier: MissionDossier }) {
       <div className="mx-auto max-w-3xl">
         <Link
           href="/missions"
-          className="text-[11px] font-medium tracking-[0.22em] text-ink-soft uppercase transition hover:text-navy"
+          className="text-[11px] font-medium tracking-[0.22em] text-ink-soft uppercase transition hover:text-navy focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
         >
           ← Back to Mission Library
         </Link>
 
         <header className="mt-8">
-          <p className="text-[11px] font-medium tracking-[0.32em] text-gold uppercase">
+          <p className="text-[11px] font-medium tracking-[0.32em] text-gold-ink uppercase">
             Classified dossier · {dossier.number}
           </p>
           <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
@@ -38,19 +38,19 @@ export function MissionDetail({ dossier }: { dossier: MissionDossier }) {
           </div>
           <dl className="mt-8 grid grid-cols-2 gap-4 border-y border-ink/8 py-5 text-sm sm:grid-cols-3">
             <div>
-              <dt className="text-[10px] tracking-[0.22em] text-gold uppercase">
+              <dt className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">
                 Category
               </dt>
               <dd className="mt-1 text-ink">{dossier.category}</dd>
             </div>
             <div>
-              <dt className="text-[10px] tracking-[0.22em] text-gold uppercase">
+              <dt className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">
                 Difficulty
               </dt>
               <dd className="mt-1 text-ink">{dossier.difficulty}</dd>
             </div>
             <div className="col-span-2 sm:col-span-1">
-              <dt className="text-[10px] tracking-[0.22em] text-gold uppercase">
+              <dt className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">
                 Time
               </dt>
               <dd className="mt-1 text-ink">{dossier.time}</dd>
@@ -59,7 +59,7 @@ export function MissionDetail({ dossier }: { dossier: MissionDossier }) {
         </header>
 
         <PaperCard className="mt-10 p-6 sm:p-8">
-          <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">
+          <p className="text-[11px] font-medium tracking-[0.28em] text-gold-ink uppercase">
             Mission briefing
           </p>
           <p className="mt-4 text-lg leading-8 text-ink">{dossier.briefing}</p>
@@ -79,7 +79,7 @@ export function MissionDetail({ dossier }: { dossier: MissionDossier }) {
                 key={step}
                 className="surface-lift flex gap-4 rounded-2xl border border-ink/8 bg-paper px-5 py-4"
               >
-                <span className="pt-0.5 text-[11px] tracking-[0.22em] text-gold">
+                <span className="pt-0.5 text-[11px] tracking-[0.22em] text-gold-ink">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <p className="leading-7 text-ink">{step}</p>
@@ -91,7 +91,7 @@ export function MissionDetail({ dossier }: { dossier: MissionDossier }) {
         <PaperCard className="mt-12 flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:p-8">
           <Stamp label={dossier.rewardStamp} tone="gold" className="shrink-0" />
           <div>
-            <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">
+            <p className="text-[11px] font-medium tracking-[0.28em] text-gold-ink uppercase">
               Mission reward
             </p>
             <p className="mt-2 leading-7 text-ink">{dossier.reward}</p>
@@ -99,7 +99,7 @@ export function MissionDetail({ dossier }: { dossier: MissionDossier }) {
         </PaperCard>
 
         <div className="mt-12">
-          <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">
+          <p className="text-[11px] font-medium tracking-[0.28em] text-gold-ink uppercase">
             Mission action
           </p>
           <div className="mt-4">
@@ -114,9 +114,9 @@ export function MissionDetail({ dossier }: { dossier: MissionDossier }) {
           {dossier.previous ? (
             <Link
               href={`/missions/${dossier.previous.id}`}
-              className="group max-w-xs"
+              className="group max-w-xs rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
             >
-              <p className="text-[10px] tracking-[0.22em] text-gold uppercase">
+              <p className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">
                 Previous
               </p>
               <p className="mt-1 font-display text-xl text-ink group-hover:text-navy">
@@ -129,9 +129,9 @@ export function MissionDetail({ dossier }: { dossier: MissionDossier }) {
           {dossier.next ? (
             <Link
               href={`/missions/${dossier.next.id}`}
-              className="group max-w-xs sm:text-right"
+              className="group max-w-xs rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink sm:text-right"
             >
-              <p className="text-[10px] tracking-[0.22em] text-gold uppercase">
+              <p className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">
                 Next
               </p>
               <p className="mt-1 font-display text-xl text-ink group-hover:text-navy">

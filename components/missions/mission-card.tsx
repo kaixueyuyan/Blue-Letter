@@ -24,19 +24,19 @@ export function MissionCard({ mission }: { mission: Mission; index: number }) {
       <p className="mt-4 leading-7 text-ink-soft">{mission.summary}</p>
       <dl className="mt-6 grid grid-cols-2 gap-4 text-sm">
         <div>
-          <dt className="text-[10px] tracking-[0.22em] text-gold uppercase">Origin</dt>
+          <dt className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">Origin</dt>
           <dd className="mt-1 text-ink">{mission.origin}</dd>
         </div>
         <div>
-          <dt className="text-[10px] tracking-[0.22em] text-gold uppercase">Counterpart</dt>
+          <dt className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">Counterpart</dt>
           <dd className="mt-1 text-ink">{mission.counterpart}</dd>
         </div>
         <div>
-          <dt className="text-[10px] tracking-[0.22em] text-gold uppercase">Duration</dt>
+          <dt className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">Duration</dt>
           <dd className="mt-1 text-ink">{mission.duration}</dd>
         </div>
         <div>
-          <dt className="text-[10px] tracking-[0.22em] text-gold uppercase">Crew</dt>
+          <dt className="text-[10px] tracking-[0.22em] text-gold-ink uppercase">Crew</dt>
           <dd className="mt-1 text-ink">{mission.crewSize}</dd>
         </div>
       </dl>

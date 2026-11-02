@@ -33,12 +33,14 @@ export function FeaturedMissions() {
             title="Featured Missions"
             kicker="Four assignments currently pinned to the expedition board. Choose a brief, meet a counterpart on the other side of the map, and keep the same log."
           />
-          <SegmentedTabs
-            items={filters}
-            value={filter}
-            onChange={setFilter}
-            className="self-start lg:self-auto"
-          />
+          <div className="max-w-full self-start overflow-x-auto pb-1 lg:self-auto">
+            <SegmentedTabs
+              items={filters}
+              value={filter}
+              onChange={setFilter}
+              className="w-max"
+            />
+          </div>
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           {missions.map((mission, index) => (

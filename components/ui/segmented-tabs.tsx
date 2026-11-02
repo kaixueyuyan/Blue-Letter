@@ -16,6 +16,7 @@ type SegmentedTabsProps = {
   onChange?: (id: string) => void;
   className?: string;
   tone?: "light" | "onGlass";
+  compact?: boolean;
 };
 
 export function SegmentedTabs({
@@ -24,15 +25,14 @@ export function SegmentedTabs({
   onChange,
   className,
   tone = "light",
+  compact = false,
 }: SegmentedTabsProps) {
   const listRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Map<string, HTMLElement>>(new Map());
   const [indicator, setIndicator] = useState({ left: 4, width: 0, height: 0, top: 4 });
-  const [mounted, setMounted] = useState(false);
 
   useLayoutEffect(() => {
     const list = listRef.current;
-    setMounted(true);
 
     const measure = () => {
       const active = itemRefs.current.get(value);
@@ -43,6 +43,13 @@ export function SegmentedTabs({
         height: active.offsetHeight,
         top: active.offsetTop,
       });
+      const pad = 4;
+      const start = active.offsetLeft - pad;
+      const end = active.offsetLeft + active.offsetWidth + pad;
+      if (start < list.scrollLeft) list.scrollLeft = start;
+      else if (end > list.scrollLeft + list.clientWidth) {
+        list.scrollLeft = end - list.clientWidth;
+      }
     };
 
     measure();
@@ -77,7 +84,6 @@ export function SegmentedTabs({
         className,
       )}
     >
-      {mounted ? (
       <span
         aria-hidden
         className="pointer-events-none absolute rounded-full bg-navy shadow-[0_8px_24px_-12px_rgba(11,28,61,0.7)] transition-[left,top,width,height] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -88,11 +94,11 @@ export function SegmentedTabs({
           height: indicator.height || undefined,
         }}
       />
-      ) : null}
       {items.map((item) => {
         const selected = item.id === value;
         const classes = cn(
-          "relative z-10 shrink-0 rounded-full px-4 py-2 text-[11px] font-medium tracking-[0.16em] uppercase whitespace-nowrap transition-colors duration-300",
+          "relative z-10 shrink-0 rounded-full py-2 text-[11px] font-medium uppercase whitespace-nowrap transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink",
+          compact ? "px-2 tracking-[0.06em]" : "px-4 tracking-[0.16em]",
           selected ? "text-ivory" : "text-ink-soft hover:text-ink",
         );
 

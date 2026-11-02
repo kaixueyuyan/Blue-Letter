@@ -29,7 +29,7 @@ export function ExpeditionPassport() {
   return (
     <div className="px-5 py-12 sm:px-8 sm:py-16">
       <div className="mx-auto max-w-6xl">
-        <p className="text-[11px] font-medium tracking-[0.32em] text-gold uppercase">
+        <p className="text-[11px] font-medium tracking-[0.32em] text-gold-ink uppercase">
           Crew papers · not an account
         </p>
         <p className="mt-3 max-w-2xl leading-7 text-ink-soft">
@@ -57,7 +57,7 @@ export function ExpeditionPassport() {
         <section className="mt-14">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">
+              <p className="text-[11px] font-medium tracking-[0.28em] text-gold-ink uppercase">
                 Visa pages
               </p>
               <h2 className="mt-2 font-display text-3xl font-medium tracking-tight text-ink">

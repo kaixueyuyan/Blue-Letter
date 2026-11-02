@@ -100,7 +100,7 @@ export function MissionStamp({
     <article className="flex flex-col items-center text-center">
       <Link
         href={`/missions/${dossier.id}`}
-        className="group focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold"
+        className="group focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink"
       >
         <span className="sr-only">
           {dossier.title}, {caption(status, completedAt)}
@@ -165,7 +165,7 @@ export function MissionStamp({
         <p
           className={cn(
             "mt-1 text-[11px] tracking-[0.18em] uppercase",
-            status === "in-progress" ? "text-gold" : "text-ink-soft",
+            status === "in-progress" ? "text-gold-ink" : "text-ink-soft",
           )}
         >
           {caption(status, completedAt)}

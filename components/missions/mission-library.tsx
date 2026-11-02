@@ -26,7 +26,7 @@ export function MissionLibrary() {
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <header className="max-w-2xl">
-            <p className="text-[11px] font-medium tracking-[0.32em] text-gold uppercase">
+            <p className="text-[11px] font-medium tracking-[0.32em] text-gold-ink uppercase">
               Expedition board
             </p>
             <h1 className="mt-3 font-display text-4xl font-medium tracking-tight text-pretty text-ink sm:text-5xl">

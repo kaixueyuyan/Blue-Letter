@@ -17,6 +17,7 @@ function routeTab(pathname: string) {
   if (pathname.startsWith("/missions")) return "missions";
   if (pathname.startsWith("/logbook")) return "logbook";
   if (pathname.startsWith("/passport")) return "passport";
+  if (pathname.startsWith("/join")) return "";
   return null;
 }
 
@@ -86,10 +87,12 @@ export function SiteHeader() {
           </nav>
 
           <Link
-            href="/#join"
-            className="hidden shrink-0 rounded-full border border-ink/10 bg-navy px-4 py-2 text-[11px] tracking-[0.18em] text-ivory uppercase transition hover:bg-air-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink sm:inline-flex"
+            href="/join"
+            aria-current={pathname.startsWith("/join") ? "page" : undefined}
+            className="inline-flex shrink-0 rounded-full border border-ink/10 bg-navy px-3 py-2 text-[10px] tracking-[0.14em] text-ivory uppercase transition hover:bg-air-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
           >
-            Join the Expedition
+            Join
+            <span className="hidden sm:inline">&nbsp;the Expedition</span>
           </Link>
         </div>
         <div className="border-t border-ink/6 px-3 py-2 md:hidden">

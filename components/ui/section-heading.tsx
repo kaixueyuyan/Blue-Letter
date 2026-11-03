@@ -5,6 +5,7 @@ type SectionHeadingProps = {
   title: string;
   kicker?: string;
   align?: "left" | "center";
+  id?: string;
 };
 
 export function SectionHeading({
@@ -12,6 +13,7 @@ export function SectionHeading({
   title,
   kicker,
   align = "left",
+  id,
 }: SectionHeadingProps) {
   return (
     <header
@@ -25,7 +27,10 @@ export function SectionHeading({
           {eyebrow}
         </p>
       ) : null}
-      <h2 className="mt-3 font-display text-4xl font-medium tracking-tight text-pretty text-ink sm:text-5xl">
+      <h2
+        id={id}
+        className="mt-3 font-display text-4xl font-medium tracking-tight text-pretty text-ink sm:text-5xl"
+      >
         {title}
       </h2>
       {kicker ? (

@@ -32,7 +32,7 @@ export function Hero() {
             missions from two latitudes. The letter is the voyage.
           </p>
           <div className="animate-ink mt-10 flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href="#join" variant="onDark">
+            <ButtonLink href="/join" variant="onDark">
               Join the Expedition
             </ButtonLink>
             <ButtonLink

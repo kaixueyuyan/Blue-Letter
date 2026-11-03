@@ -74,10 +74,12 @@ app/
   missions/page.tsx          Mission Library
   missions/[slug]/page.tsx   Mission Detail (dynamic)
   passport/page.tsx          Expedition Passport
+  join/page.tsx              Crew roster preview (no submission)
   logbook/page.tsx           Global Logbook
   logbook/[slug]/page.tsx    Story detail (dynamic)
 components/
   landing/                   Home-only sections
+  join/                      Recruitment hero, brief, path choice, preview forms
   layout/                    SiteHeader, SiteFooter
   missions/                  Library + detail + home featured card
   passport/                  expedition-passport, identity, stamps, progress, use-passport
@@ -106,7 +108,7 @@ Root layout does **not** wrap header/footer. Each page composes `SiteHeader` + `
 
 ### Layout
 
-- `site-header.tsx` — sticky glass header; tabs Overview `/#top`, Brief `/#brief`, Missions `/missions`, Logbook `/logbook`, Passport `/passport`; CTA “Join the Expedition” → `/#join`. Locked tabs: `/missions*`, `/logbook*`, `/passport`. On Home, IntersectionObserver tracks hash sections.
+- `site-header.tsx` — sticky glass header; tabs Overview `/#top`, Brief `/#brief`, Missions `/missions`, Logbook `/logbook`, Passport `/passport`; CTA “Join the Expedition” → `/join` (visible on mobile as “Join”). Locked tabs: `/missions*`, `/logbook*`, `/passport`. `/join` selects no tab. On Home, IntersectionObserver tracks hash sections.
 - `site-footer.tsx` — gold rule + expedition tagline
 
 ### Mission data
@@ -142,6 +144,7 @@ Root layout does **not** wrap header/footer. Each page composes `SiteHeader` + `
 | `/missions` | `app/missions/page.tsx` | Library |
 | `/missions/[slug]` | `app/missions/[slug]/page.tsx` | `generateStaticParams` from `libraryMissions`; unknown slug → `notFound()` |
 | `/passport` | `app/passport/page.tsx` | Expedition Passport (client island for localStorage) |
+| `/join` | `app/join/page.tsx` | Crew roster preview. Forms do not submit or touch localStorage |
 | `/logbook` | `app/logbook/page.tsx` | Global Logbook gallery + map |
 | `/logbook/[slug]` | `app/logbook/[slug]/page.tsx` | Story template; `generateStaticParams` from `logbookStories`; unknown slug → `notFound()` |
 | No API routes | — | — |
@@ -154,10 +157,10 @@ Home `#top`, `#brief`, `#missions`, `#join` are in-page section ids, not separat
 
 ### Home (`/`) — implemented
 
-- Navy cinematic hero, map, compass, two CTAs (`#join`, `#missions`)
+- Navy cinematic hero, map, compass, two CTAs (`/join`, `#missions`)
 - Expedition brief: field note + three steps from `expeditionSteps`
 - Featured missions: **four** cards from `featuredMissions`, filter tabs All / Recruiting / In the field / Logged
-- Join CTA block (copy + link to `#missions`; **no form**)
+- Join CTA block links to `/join` and still offers the mission board (`#missions`)
 - Header / footer as above
 
 Home featured cards (`MissionCard`) are **not** linked to detail pages.
@@ -208,6 +211,7 @@ Home featured cards (`MissionCard`) are **not** linked to detail pages.
 | Interaction | Behavior |
 | --- | --- |
 | Header tabs | Hash links on Home; `/missions`; `/logbook`; `/passport` |
+| Join the Expedition | Header, Home hero, and Home join block all go to `/join` |
 | Library category tabs | Client `useState` filter; not persisted |
 | Home featured status tabs | Client filter on `featuredMissions.status` |
 | Library card click | Navigates to detail |
@@ -300,7 +304,7 @@ Utilities: `.site-canvas`, `.surface-lift`, `.gold-rule`, `.hairline`, `.animate
 - No authentication or accounts
 - No real student or volunteer records
 - No mission enrollment, pairing, or submissions
-- Join CTA is static copy
+- `/join` is a non-submitting preview. No application provider, and typed answers are not stored
 - Accept / complete are a **browser demo**, not verified mission work
 - Home featured cards do not deep-link to `/missions/[slug]`
 - No custom 404 page
@@ -308,7 +312,7 @@ Utilities: `.site-canvas`, `.surface-lift`, `.gold-rule`, `.hairline`, `.animate
 
 **Known issues / unfinished interactions**
 
-- Header “Join the Expedition” always goes to `/#join` (Home join section), including from Library/Detail
+- Home `#join` remains the on-page teaser. The recruitment form lives at `/join`
 - Library and Home use **different status vocabularies** for overlapping missions (e.g. Home “Recruiting” vs Library “Open berth”)
 - Next.js may warn about `scroll-behavior: smooth` on `<html>` during client navigations
 - Default Next 404 for unknown slugs; not branded
@@ -403,7 +407,7 @@ Clearing the key in DevTools resets all explorer progress to NOT STARTED.
 ## Quick start for the next agent
 
 1. Read this file, then `lib/passport.ts`, `app/passport/page.tsx`, `app/missions/[slug]/page.tsx`.
-2. Run `npm run dev` → `/`, `/missions`, `/missions/mission-crate`, `/passport`, `/logbook`, `/logbook/chili-cousins`.
+2. Run `npm run dev` → `/`, `/join`, `/missions`, `/missions/mission-crate`, `/passport`, `/logbook`, `/logbook/chili-cousins`.
 3. Progress lives in one store; do not add a second localStorage key for the same states.
 4. Logbook stories are demo fiction in `lib/logbook.ts`; do not treat them as real student records.
 
@@ -418,8 +422,15 @@ Blue Letter involves children. Current product rules that are **already encoded 
 - Gradient visual plates, not identifying photographs
 - No public uploads, comments, or messaging
 - Pages labeled as demonstration / not verified records
+- `/join` is for adults 18+ and partner organizations. It asks for no date of birth, no child registration, and no volunteer-to-child messaging. The form cannot submit, and it does not write localStorage
 
 Do not add real participant content, geolocation, or UGC without a separate safety design.
+
+### Phase 7B.1 — Join the Expedition (implemented)
+
+- Route `/join`: hero, path choice (Volunteer Explorer / Partner Organization), experience, four-step joining process, preview forms, safety and privacy notice.
+- Volunteer and organization fields match the roster brief. Final submit is disabled, with “Applications opening soon.”
+- `localStorage` is untouched. Passport progress is a separate store.
 
 ---
 
@@ -428,6 +439,7 @@ Do not add real participant content, geolocation, or UGC without a separate safe
 - Custom branded 404
 - Optional: Home featured cards linking to `/missions/[slug]`
 - Product copy / README aligned with this expedition (README is still Create Next App)
-- Future phases only if requested: pairing, real submissions, accounts — none of these should ship without privacy review
+- Connect `/join` to a real submission provider only after a privacy review. Until then the submit button stays disabled
+- Future phases only if requested: pairing, accounts — none of these should ship without privacy review
 
 Passport progress and Global Logbook (demo archive) are **done**. Do not rebuild them unless asked.

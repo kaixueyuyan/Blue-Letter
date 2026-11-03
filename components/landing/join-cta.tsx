@@ -16,12 +16,19 @@ export function JoinCta() {
           Join the expedition
         </h2>
         <p className="mt-5 max-w-xl text-lg leading-8 text-ivory/70">
-          Crew applications and school partnerships will open here. For now the
-          logbook is paper: missions, stamps, and the promise of a letter that
-          actually goes somewhere.
+          Adult volunteers and partner organizations preview the crew roster on
+          its own page. Applications are not open yet, and that page does not
+          keep what you type.
         </p>
         <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-          <ButtonLink href="#missions" variant="onDark">
+          <ButtonLink href="/join" variant="onDark">
+            Join the Expedition
+          </ButtonLink>
+          <ButtonLink
+            href="#missions"
+            className="border-ivory/25 bg-transparent text-ivory hover:border-gold hover:text-ivory"
+            variant="secondary"
+          >
             Read the mission board
           </ButtonLink>
           <span className="font-display text-xl italic text-ivory/75">

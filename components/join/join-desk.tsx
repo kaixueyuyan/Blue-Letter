@@ -1,9 +1,16 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import {
+  isFormspreeId,
+  submitJoinApplication,
+  validateJoinApplication,
+  type JoinPath,
+} from "@/lib/join-application";
 import { useState, type FormEvent, type ReactNode } from "react";
 
-type Path = "volunteer" | "organization";
+type Path = JoinPath;
+type SendState = "idle" | "loading" | "success" | "error";
 
 const fieldClass =
   "mt-2 w-full rounded-2xl border border-ink/12 bg-ivory px-4 py-3 text-base leading-6 text-ink outline-none transition placeholder:text-ink-soft/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink";
@@ -19,7 +26,15 @@ function choiceClass(selected: boolean, tone: "navy" | "gold") {
   );
 }
 
-export function JoinDesk({ children }: { children: ReactNode }) {
+export function JoinDesk({
+  children,
+  volunteerFormId,
+  organizationFormId,
+}: {
+  children: ReactNode;
+  volunteerFormId?: string;
+  organizationFormId?: string;
+}) {
   const [path, setPath] = useState<Path>("volunteer");
 
   function choose(next: Path) {
@@ -84,14 +99,56 @@ export function JoinDesk({ children }: { children: ReactNode }) {
         </div>
       </section>
       {children}
-      <ApplicationForm path={path} />
+      <ApplicationForm
+        key={path}
+        path={path}
+        formId={path === "volunteer" ? volunteerFormId : organizationFormId}
+      />
     </>
   );
 }
 
-function ApplicationForm({ path }: { path: Path }) {
-  function hold(event: FormEvent<HTMLFormElement>) {
+function ApplicationForm({ path, formId }: { path: Path; formId?: string }) {
+  const configured = isFormspreeId(formId);
+  const [sendState, setSendState] = useState<SendState>("idle");
+  const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (sendState === "loading") return;
+
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const nextErrors = validateJoinApplication(path, data);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      setSendState("error");
+      setMessage("Check the highlighted fields and try again.");
+      document.getElementById(Object.keys(nextErrors)[0])?.focus();
+      return;
+    }
+
+    if (!configured || !formId) {
+      setSendState("error");
+      setMessage("This form is not ready to send yet.");
+      return;
+    }
+
+    setSendState("loading");
+    setMessage("");
+    const result = await submitJoinApplication(formId, data);
+    if (result.ok) {
+      form.reset();
+      setErrors({});
+      setSendState("success");
+      setMessage(
+        "Formspree confirmed that this form was received. That confirmation is not an acceptance into the expedition.",
+      );
+      return;
+    }
+    setSendState("error");
+    setMessage(result.message);
   }
 
   return (
@@ -102,7 +159,7 @@ function ApplicationForm({ path }: { path: Path }) {
     >
       <div className="mx-auto max-w-3xl">
         <p className="text-[11px] font-medium tracking-[0.32em] text-gold-ink uppercase">
-          Application preview
+          Application
         </p>
         <h2
           id="application-title"
@@ -110,30 +167,62 @@ function ApplicationForm({ path }: { path: Path }) {
         >
           {path === "volunteer" ? "Volunteer Explorer" : "Partner Organization"}
         </h2>
-        <p className="mt-4 leading-8 text-ink-soft" role="status">
-          Applications opening soon. This is a non-submitting preview. Nothing
-          you type is sent or saved in this browser.
+        <p className="mt-4 leading-8 text-ink-soft">
+          {configured
+            ? "Send the form when it is complete. A confirmed receipt is not an acceptance, and this browser does not save what you type. A legal privacy policy is not published on this page yet."
+            : "This form is not ready to send yet. Nothing you type is saved in this browser."}
         </p>
-        <form
-          key={path}
-          className="surface-lift mt-8 rounded-[1.6rem] border border-ink/8 bg-paper px-5 py-7 sm:px-8"
-          onSubmit={hold}
-          noValidate
-        >
-          {path === "volunteer" ? <VolunteerFields /> : <OrganizationFields />}
-          <button
-            type="submit"
-            disabled
-            aria-describedby="application-hold"
-            className="mt-8 inline-flex cursor-not-allowed items-center justify-center rounded-full bg-navy px-8 py-3.5 text-[12px] font-medium tracking-[0.18em] text-ivory uppercase opacity-50"
+        {sendState === "success" ? (
+          <p
+            className="surface-lift mt-8 rounded-[1.6rem] border border-ink/8 bg-paper px-5 py-7 text-lg leading-8 text-ink sm:px-8"
+            role="status"
           >
-            Submit application
-          </button>
-          <p id="application-hold" className="mt-4 text-sm leading-7 text-ink-soft">
-            Applications opening soon. The button stays off until a real
-            submission provider is connected.
+            {message}
           </p>
-        </form>
+        ) : (
+          <form
+            className="surface-lift relative mt-8 rounded-[1.6rem] border border-ink/8 bg-paper px-5 py-7 sm:px-8"
+            onSubmit={onSubmit}
+            noValidate
+          >
+            <div className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+              <label htmlFor={`${path}-gotcha`}>Leave this field empty</label>
+              <input id={`${path}-gotcha`} name="_gotcha" type="text" tabIndex={-1} autoComplete="off" />
+            </div>
+            <input
+              type="hidden"
+              name="_subject"
+              value={path === "volunteer" ? "Volunteer application" : "Partner organization application"}
+            />
+            {path === "volunteer" ? (
+              <VolunteerFields errors={errors} />
+            ) : (
+              <OrganizationFields errors={errors} />
+            )}
+            <button
+              type="submit"
+              disabled={!configured || sendState === "loading"}
+              aria-busy={sendState === "loading"}
+              aria-describedby="application-status"
+              className="mt-8 inline-flex items-center justify-center rounded-full bg-navy px-8 py-3.5 text-[12px] font-medium tracking-[0.18em] text-ivory uppercase shadow-[0_16px_32px_-18px_rgba(11,28,61,0.85)] transition hover:bg-air-blue focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-ink disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {sendState === "loading" ? "Sending application" : "Submit application"}
+            </button>
+            <p
+              id="application-status"
+              className={cn(
+                "mt-4 text-sm leading-7",
+                sendState === "error" ? "text-air-red" : "text-ink-soft",
+              )}
+              role="status"
+            >
+              {message ||
+                (configured
+                  ? "Submitting an application does not guarantee acceptance."
+                  : "The send button stays off until the form endpoint is configured.")}
+            </p>
+          </form>
+        )}
       </div>
     </section>
   );
@@ -150,119 +239,183 @@ function Label({ id, children }: { id: string; children: ReactNode }) {
   );
 }
 
-function VolunteerFields() {
+function VolunteerFields({ errors }: { errors: Record<string, string> }) {
   return (
     <div className="grid gap-5">
-      <div>
-        <Label id="preferred-name">Preferred name</Label>
-        <input id="preferred-name" name="preferredName" autoComplete="name" className={fieldClass} />
-      </div>
-      <div>
-        <Label id="email">Email address</Label>
-        <input id="email" name="email" type="email" autoComplete="email" inputMode="email" className={fieldClass} />
-      </div>
-      <div>
-        <Label id="region">Country or region</Label>
-        <input
-          id="region"
-          name="region"
-          autoComplete="country-name"
-          placeholder="A country or region, not a street address"
-          className={fieldClass}
-        />
-      </div>
-      <div className="flex gap-3 rounded-2xl border border-ink/10 bg-ivory px-4 py-3">
-        <input
-          id="age-18"
-          name="ageEligible"
-          type="checkbox"
-          className="mt-1 h-4 w-4 accent-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink"
-        />
-        <label htmlFor="age-18" className="text-sm leading-6 text-ink">
-          I confirm that I am 18 or older. This form does not ask for a date of
-          birth, and it is not a registration for anyone under 18.
-        </label>
-      </div>
-      <div>
-        <Label id="languages">Languages spoken</Label>
-        <input id="languages" name="languages" className={fieldClass} />
-      </div>
-      <div>
-        <Label id="why">Why would you like to join Blue Letter?</Label>
-        <textarea id="why" name="why" rows={5} className={fieldClass} />
-      </div>
-      <div>
-        <Label id="experience">Relevant experience (optional)</Label>
-        <textarea id="experience" name="experience" rows={4} className={fieldClass} />
-      </div>
-      <div>
-        <Label id="availability">General availability (optional)</Label>
-        <input id="availability" name="availability" className={fieldClass} />
-      </div>
-      <Consent id="volunteer-consent" />
+      <TextField id="preferred-name" name="preferredName" label="Preferred name" autoComplete="name" error={errors["preferred-name"]} required />
+      <TextField id="email" name="email" label="Email address" type="email" autoComplete="email" inputMode="email" error={errors.email} required />
+      <TextField
+        id="region"
+        name="region"
+        label="Country or region"
+        autoComplete="country-name"
+        placeholder="A country or region, not a street address"
+        error={errors.region}
+        required
+      />
+      <CheckField
+        id="age-18"
+        name="ageEligible"
+        error={errors["age-18"]}
+        label="I confirm that I am 18 or older. This form does not ask for a date of birth, and it is not a registration for anyone under 18."
+      />
+      <TextField id="languages" name="languages" label="Languages spoken" error={errors.languages} required />
+      <TextField id="why" name="why" label="Why would you like to join Blue Letter?" rows={5} error={errors.why} required />
+      <TextField id="experience" name="experience" label="Relevant experience (optional)" rows={4} />
+      <TextField id="availability" name="availability" label="General availability (optional)" />
+      <CheckField
+        id="volunteer-consent"
+        name="consent"
+        error={errors["volunteer-consent"]}
+        label="I agree to be contacted about this application. Sending the form is not an acceptance."
+      />
     </div>
   );
 }
 
-function OrganizationFields() {
+function OrganizationFields({ errors }: { errors: Record<string, string> }) {
   return (
     <div className="grid gap-5">
-      <div>
-        <Label id="organization-name">Organization name</Label>
-        <input id="organization-name" name="organizationName" autoComplete="organization" className={fieldClass} />
-      </div>
-      <div>
-        <Label id="contact-name">Contact person&apos;s name</Label>
-        <input id="contact-name" name="contactName" autoComplete="name" className={fieldClass} />
-      </div>
-      <div>
-        <Label id="work-email">Professional email</Label>
-        <input id="work-email" name="email" type="email" autoComplete="email" inputMode="email" className={fieldClass} />
-      </div>
-      <div>
-        <Label id="org-region">Country or region</Label>
-        <input
-          id="org-region"
-          name="region"
-          autoComplete="country-name"
-          placeholder="A country or region, not a street address"
-          className={fieldClass}
-        />
-      </div>
+      <TextField id="organization-name" name="organizationName" label="Organization name" autoComplete="organization" error={errors["organization-name"]} required />
+      <TextField id="contact-name" name="contactName" label="Contact person's name" autoComplete="name" error={errors["contact-name"]} required />
+      <TextField id="work-email" name="email" label="Professional email" type="email" autoComplete="email" inputMode="email" error={errors["work-email"]} required />
+      <TextField
+        id="org-region"
+        name="region"
+        label="Country or region"
+        autoComplete="country-name"
+        placeholder="A country or region, not a street address"
+        error={errors["org-region"]}
+        required
+      />
       <div>
         <Label id="organization-type">Organization type</Label>
-        <select id="organization-type" name="organizationType" defaultValue="" className={fieldClass}>
-          <option value="" disabled>
-            Select a type
-          </option>
+        <select
+          id="organization-type"
+          name="organizationType"
+          defaultValue=""
+          aria-invalid={Boolean(errors["organization-type"])}
+          aria-describedby={errors["organization-type"] ? "organization-type-error" : undefined}
+          className={controlClass(Boolean(errors["organization-type"]))}
+          required
+        >
+          <option value="">Select a type</option>
           <option>School</option>
           <option>Nonprofit</option>
           <option>Educational organization</option>
           <option>Other</option>
         </select>
+        <FieldError id="organization-type" message={errors["organization-type"]} />
       </div>
-      <div>
-        <Label id="collaboration">Proposed collaboration</Label>
-        <textarea id="collaboration" name="collaboration" rows={5} className={fieldClass} />
-      </div>
-      <Consent id="organization-consent" />
+      <TextField id="collaboration" name="collaboration" label="Proposed collaboration" rows={5} error={errors.collaboration} required />
+      <CheckField
+        id="organization-consent"
+        name="consent"
+        error={errors["organization-consent"]}
+        label="I agree to be contacted about this application. Sending the form is not an acceptance."
+      />
     </div>
   );
 }
 
-function Consent({ id }: { id: string }) {
+function TextField({
+  id,
+  name,
+  label,
+  error,
+  required,
+  rows,
+  type = "text",
+  autoComplete,
+  inputMode,
+  placeholder,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  error?: string;
+  required?: boolean;
+  rows?: number;
+  type?: string;
+  autoComplete?: string;
+  inputMode?: "email" | "text";
+  placeholder?: string;
+}) {
+  const invalid = Boolean(error);
+  const describedBy = invalid ? `${id}-error` : undefined;
   return (
-    <div className="flex gap-3 rounded-2xl border border-ink/10 bg-ivory px-4 py-3">
-      <input
-        id={id}
-        name="consent"
-        type="checkbox"
-        className="mt-1 h-4 w-4 accent-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink"
-      />
-      <label htmlFor={id} className="text-sm leading-6 text-ink">
-        I agree to be contacted about this application once applications open.
-        This preview does not contact anyone.
-      </label>
+    <div>
+      <Label id={id}>{label}</Label>
+      {rows ? (
+        <textarea
+          id={id}
+          name={name}
+          rows={rows}
+          required={required}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
+          className={controlClass(invalid)}
+        />
+      ) : (
+        <input
+          id={id}
+          name={name}
+          type={type}
+          required={required}
+          autoComplete={autoComplete}
+          inputMode={inputMode}
+          placeholder={placeholder}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
+          className={controlClass(invalid)}
+        />
+      )}
+      <FieldError id={id} message={error} />
     </div>
   );
+}
+
+function CheckField({
+  id,
+  name,
+  label,
+  error,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  error?: string;
+}) {
+  return (
+    <div>
+      <div className={cn("flex gap-3 rounded-2xl border bg-ivory px-4 py-3", error ? "border-air-red" : "border-ink/10")}>
+        <input
+          id={id}
+          name={name}
+          type="checkbox"
+          value="yes"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className="mt-1 h-4 w-4 accent-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-ink"
+        />
+        <label htmlFor={id} className="text-sm leading-6 text-ink">
+          {label}
+        </label>
+      </div>
+      <FieldError id={id} message={error} />
+    </div>
+  );
+}
+
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={`${id}-error`} className="mt-2 text-sm leading-6 text-air-red">
+      {message}
+    </p>
+  );
+}
+
+function controlClass(invalid: boolean) {
+  return cn(fieldClass, invalid && "border-air-red");
 }

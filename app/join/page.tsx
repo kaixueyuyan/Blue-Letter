@@ -12,7 +12,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Join the Expedition · Blue Letter",
   description:
-    "A preview of the Blue Letter crew roster for adult volunteers and partner organizations. Applications are not open, and this page does not save what you type.",
+    "Adult volunteers and partner organizations can send a Blue Letter application for review. A confirmed receipt is not an acceptance, and this page does not save what you type.",
 };
 
 export default function JoinPage() {
@@ -21,7 +21,10 @@ export default function JoinPage() {
       <SiteHeader />
       <main className="flex-1">
         <JoinHero />
-        <JoinDesk>
+        <JoinDesk
+          volunteerFormId={process.env.NEXT_PUBLIC_FORMSPREE_VOLUNTEER_ID}
+          organizationFormId={process.env.NEXT_PUBLIC_FORMSPREE_ORGANIZATION_ID}
+        >
           <ExpeditionExperience />
           <HowJoiningWorks />
         </JoinDesk>

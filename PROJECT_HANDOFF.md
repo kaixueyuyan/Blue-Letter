@@ -144,7 +144,7 @@ Root layout does **not** wrap header/footer. Each page composes `SiteHeader` + `
 | `/missions` | `app/missions/page.tsx` | Library |
 | `/missions/[slug]` | `app/missions/[slug]/page.tsx` | `generateStaticParams` from `libraryMissions`; unknown slug → `notFound()` |
 | `/passport` | `app/passport/page.tsx` | Expedition Passport (client island for localStorage) |
-| `/join` | `app/join/page.tsx` | Crew roster preview. Forms do not submit or touch localStorage |
+| `/join` | `app/join/page.tsx` | Crew roster. Formspree AJAX when the public form IDs are set. Does not write localStorage |
 | `/logbook` | `app/logbook/page.tsx` | Global Logbook gallery + map |
 | `/logbook/[slug]` | `app/logbook/[slug]/page.tsx` | Story template; `generateStaticParams` from `logbookStories`; unknown slug → `notFound()` |
 | No API routes | — | — |
@@ -304,7 +304,7 @@ Utilities: `.site-canvas`, `.surface-lift`, `.gold-rule`, `.hairline`, `.animate
 - No authentication or accounts
 - No real student or volunteer records
 - No mission enrollment, pairing, or submissions
-- `/join` is a non-submitting preview. No application provider, and typed answers are not stored
+- `/join` can send a form to Formspree. A receipt is not an acceptance, and a legal privacy policy is not published yet
 - Accept / complete are a **browser demo**, not verified mission work
 - Home featured cards do not deep-link to `/missions/[slug]`
 - No custom 404 page
@@ -422,7 +422,7 @@ Blue Letter involves children. Current product rules that are **already encoded 
 - Gradient visual plates, not identifying photographs
 - No public uploads, comments, or messaging
 - Pages labeled as demonstration / not verified records
-- `/join` is for adults 18+ and partner organizations. It asks for no date of birth, no child registration, and no volunteer-to-child messaging. The form cannot submit, and it does not write localStorage
+- `/join` is for adults 18+ and partner organizations. It asks for no date of birth, no child registration, and no volunteer-to-child messaging. Submitted fields go to Formspree. The page does not write localStorage or log the answers
 
 Do not add real participant content, geolocation, or UGC without a separate safety design.
 
@@ -432,6 +432,15 @@ Do not add real participant content, geolocation, or UGC without a separate safe
 - Volunteer and organization fields match the roster brief. Final submit is disabled, with “Applications opening soon.”
 - `localStorage` is untouched. Passport progress is a separate store.
 
+### Phase 7B.2 — Formspree submission (implemented)
+
+- Volunteer form posts to `https://formspree.io/f/` plus `NEXT_PUBLIC_FORMSPREE_VOLUNTEER_ID`.
+- Organization form posts to `https://formspree.io/f/` plus `NEXT_PUBLIC_FORMSPREE_ORGANIZATION_ID`.
+- Submission is `fetch` with `Accept: application/json` and `FormData`. Success is shown only when the response is OK.
+- Required fields, email shape, the 18+ checkbox, and contact consent are checked in the browser before the request. The button shows “Sending application” and ignores a second submit while that request is in flight.
+- The form IDs are not written in components. `.env.example` lists the variable names. `.env.local` stays ignored (`.env*` with an exception for `.env.example`).
+- Copy does not say an applicant has been accepted. The privacy note describes the Formspree path and says it is not a legal privacy policy.
+
 ---
 
 ## 11. Suggested next work (not built)
@@ -439,7 +448,7 @@ Do not add real participant content, geolocation, or UGC without a separate safe
 - Custom branded 404
 - Optional: Home featured cards linking to `/missions/[slug]`
 - Product copy / README aligned with this expedition (README is still Create Next App)
-- Connect `/join` to a real submission provider only after a privacy review. Until then the submit button stays disabled
+- Publish a legal privacy policy before describing `/join` as an open recruitment program. The form can already send to Formspree, and a receipt is still not an acceptance
 - Future phases only if requested: pairing, accounts — none of these should ship without privacy review
 
 Passport progress and Global Logbook (demo archive) are **done**. Do not rebuild them unless asked.

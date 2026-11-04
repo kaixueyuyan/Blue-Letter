@@ -16,9 +16,9 @@ export function JoinCta() {
           Join the expedition
         </h2>
         <p className="mt-5 max-w-xl text-lg leading-8 text-ivory/70">
-          Adult volunteers and partner organizations preview the crew roster on
-          its own page. Applications are not open yet, and that page does not
-          keep what you type.
+          Adult volunteers and partner organizations can send an application from
+          the crew roster. A sent form is not an acceptance, and that page does
+          not keep what you type.
         </p>
         <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
           <ButtonLink href="/join" variant="onDark">

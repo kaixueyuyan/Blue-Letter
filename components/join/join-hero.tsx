@@ -4,7 +4,7 @@ export function JoinHero() {
       <span aria-hidden className="gold-rule absolute inset-x-0 top-0 h-px" />
       <div className="mx-auto max-w-6xl">
         <p className="text-[11px] font-medium tracking-[0.34em] text-gold uppercase">
-          Crew roster · applications opening soon
+          Crew roster
         </p>
         <h1 className="mt-5 max-w-3xl font-display text-[clamp(2.8rem,7vw,5.4rem)] leading-[0.92] font-medium tracking-tight text-pretty">
           Your story belongs in this expedition.
@@ -12,8 +12,8 @@ export function JoinHero() {
         <p className="mt-6 max-w-2xl text-lg leading-8 text-ivory/75">
           Blue Letter connects communities through shared creative missions and
           supervised cultural exchange. Adult volunteers and partner
-          organizations can preview an application here. Children are not
-          registered on this page.
+          organizations can send an application for review. A sent form is not
+          an acceptance, and children are not registered on this page.
         </p>
       </div>
     </section>

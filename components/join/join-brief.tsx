@@ -27,7 +27,7 @@ const steps = [
   {
     number: "01",
     title: "Apply",
-    copy: "An adult volunteer or an organization contact previews the form that will open later.",
+    copy: "An adult volunteer or an organization contact sends the form for review.",
   },
   {
     number: "02",
@@ -98,8 +98,9 @@ export function HowJoiningWorks() {
           ))}
         </ol>
         <p className="mt-6 max-w-3xl leading-7 text-ink-soft">
-          Submitting an application does not guarantee acceptance. Until the
-          roster opens, the form below is a preview and does not submit.
+          Submitting an application does not guarantee acceptance. A confirmed
+          receipt is not a place on the crew. A legal privacy policy is not
+          published on this page yet.
         </p>
       </div>
     </section>
@@ -136,18 +137,17 @@ export function SafetyNotice() {
             Privacy notice
           </p>
           <h2 className="mt-3 font-display text-4xl font-medium tracking-tight text-ink">
-            What a future application will ask
+            What this form sends
           </h2>
           <p className="mt-4 leading-8 text-ink-soft">
-            When applications open, Blue Letter will ask for a preferred name
-            or organization contact, an email address, a country or region, and
-            a short reason for joining. Those details are for reviewing an
-            application and writing back about it. An exact street address is
-            not required.
+            A submitted form sends the name, email, country or region, and the
+            written answers to Formspree so Blue Letter can read them and write
+            back. An exact street address is not required. This browser does
+            not keep a copy.
           </p>
           <p className="mt-4 leading-8 text-ink-soft">
-            This preview does not send or save what you type. The note above is
-            a plain description of the prototype, not a legal privacy policy.
+            This is a plain description of that path, not a legal privacy
+            policy. A message that the form was received is not an acceptance.
           </p>
         </div>
       </div>
